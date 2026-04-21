@@ -70,6 +70,15 @@ npm run dev
 | `npm run build` | Genera build de producción |
 | `npm run start` | Inicia servidor de producción |
 | `npm run lint` | Ejecuta ESLint |
+| `npm run postinstall` | Genera cliente Prisma (se ejecuta automáticamente al instalar) |
+
+## Checklist mínima para despliegue
+
+```bash
+npm install
+npm run lint
+npm run build
+```
 
 ## Estructura del Proyecto
 
