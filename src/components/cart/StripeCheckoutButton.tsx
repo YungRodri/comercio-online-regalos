@@ -40,6 +40,10 @@ export function StripeCheckoutButton() {
 
       const data = await response.json()
 
+      if (!response.ok) {
+        throw new Error(data?.error || "No se pudo iniciar Stripe Checkout")
+      }
+
       if (data.url) {
         // Redirect to Stripe Checkout
         window.location.href = data.url
