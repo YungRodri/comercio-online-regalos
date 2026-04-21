@@ -61,7 +61,8 @@ export function WebpayCheckoutButton() {
       form.submit()
     } catch (error) {
       console.error("Error creating Webpay transaction:", error)
-      setErrorMessage("Error al iniciar pago con Webpay. Intenta nuevamente.")
+      const fallback = "No se pudo iniciar Webpay. Verifica tu sesión y reintenta."
+      setErrorMessage(error instanceof Error ? error.message || fallback : fallback)
     } finally {
       setLoading(false)
     }

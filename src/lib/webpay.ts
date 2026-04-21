@@ -49,7 +49,9 @@ function getHeaders() {
   const { commerceCode, apiKey } = getWebpayConfig()
 
   if (!commerceCode || !apiKey) {
-    throw new Error("WEBPAY_COMMERCE_CODE y WEBPAY_API_KEY son requeridos")
+    throw new Error(
+      "Falta configuración de Webpay: WEBPAY_COMMERCE_CODE y WEBPAY_API_KEY"
+    )
   }
 
   return {
@@ -98,4 +100,3 @@ export async function commitWebpayTransaction(token: string) {
 
   return parseResponse<WebpayCommitResponse>(response)
 }
-

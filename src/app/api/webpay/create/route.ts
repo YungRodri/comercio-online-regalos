@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
-    const buyOrder = `BT-WP-${Date.now()}`
+    const suffix = Math.random().toString(36).slice(2, 8).toUpperCase()
+    const buyOrder = `BT-WP-${Date.now()}-${suffix}`
     const sessionId = session.user.id
 
     const webpaySession = await createWebpayTransaction({
@@ -87,4 +88,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

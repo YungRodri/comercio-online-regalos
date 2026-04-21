@@ -27,7 +27,8 @@ async function extractToken(request: NextRequest) {
     const formData = await request.formData()
     const token = formData.get("token_ws")
     return typeof token === "string" ? token : null
-  } catch {
+  } catch (error) {
+    console.error("Failed to parse Webpay form data:", error)
     return null
   }
 }
