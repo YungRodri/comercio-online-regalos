@@ -4,6 +4,7 @@ import { Truck } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { CartItem } from "@/types"
 import { StripeCheckoutButton } from "./StripeCheckoutButton"
+import { WebpayCheckoutButton } from "./WebpayCheckoutButton"
 
 interface CartSummaryProps {
   items: CartItem[]
@@ -50,10 +51,13 @@ export function CartSummary({ items }: CartSummaryProps) {
 
       <div className="mt-6">
         <StripeCheckoutButton />
+        <div className="mt-3">
+          <WebpayCheckoutButton />
+        </div>
       </div>
 
       <p className="mt-4 text-center text-xs text-muted-foreground">
-        Pago seguro con Stripe. Impuestos incluidos.
+        Pago seguro con Stripe o Webpay. Impuestos incluidos.
       </p>
     </div>
   )

@@ -3,18 +3,17 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { Loader2, CreditCard, LogIn } from "lucide-react"
+import { Loader2, Landmark, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/stores/cart-store"
 
-export function StripeCheckoutButton() {
+export function WebpayCheckoutButton() {
   const [loading, setLoading] = useState(false)
   const items = useCartStore((state) => state.items)
   const { data: session, status } = useSession()
   const router = useRouter()
 
   const handleCheckout = async () => {
-    // Check if user is authenticated
     if (!session) {
       router.push("/login?callbackUrl=/cart")
       return
@@ -23,7 +22,7 @@ export function StripeCheckoutButton() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/checkout", {
+      const response = await fetch("/api/webpay/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -32,27 +31,35 @@ export function StripeCheckoutButton() {
             name: item.product.name,
             price: item.product.price,
             quantity: item.quantity,
-            image: item.product.images?.[0],
           })),
-          customerEmail: session.user?.email,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data?.error || "No se pudo iniciar Stripe Checkout")
+        throw new Error(data?.error || "No se pudo iniciar Webpay")
       }
 
-      if (data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url
-      } else {
-        throw new Error("No checkout URL returned")
+      if (!data.url || !data.token) {
+        throw new Error("Respuesta inválida de Webpay")
       }
+
+      const form = document.createElement("form")
+      form.method = "POST"
+      form.action = data.url
+
+      const tokenInput = document.createElement("input")
+      tokenInput.type = "hidden"
+      tokenInput.name = "token_ws"
+      tokenInput.value = data.token
+
+      form.appendChild(tokenInput)
+      document.body.appendChild(form)
+      form.submit()
     } catch (error) {
-      console.error("Error creating checkout session:", error)
-      alert("Error al procesar el pago. Intenta nuevamente.")
+      console.error("Error creating Webpay transaction:", error)
+      alert("Error al iniciar pago con Webpay. Intenta nuevamente.")
     } finally {
       setLoading(false)
     }
@@ -66,11 +73,12 @@ export function StripeCheckoutButton() {
       disabled={isLoading || items.length === 0}
       className="w-full"
       size="lg"
+      variant="outline"
     >
       {isLoading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Procesando...
+          Redirigiendo...
         </>
       ) : !session ? (
         <>
@@ -79,10 +87,11 @@ export function StripeCheckoutButton() {
         </>
       ) : (
         <>
-          <CreditCard className="mr-2 h-4 w-4" />
-          Pagar con Stripe
+          <Landmark className="mr-2 h-4 w-4" />
+          Pagar con Webpay
         </>
       )}
     </Button>
   )
 }
+
