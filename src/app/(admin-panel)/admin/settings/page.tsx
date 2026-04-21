@@ -128,9 +128,9 @@ export default function AdminSettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Mostrar productos agotados</p>
-                  <p className="text-sm text-muted-foreground">
-                    Los productos sin stock se mostraran como "Agotado"
-                  </p>
+                   <p className="text-sm text-muted-foreground">
+                     Los productos sin stock se mostraran como &quot;Agotado&quot;
+                   </p>
                 </div>
                 <Switch defaultChecked />
               </div>
