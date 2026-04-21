@@ -9,6 +9,7 @@ import { useCartStore } from "@/stores/cart-store"
 
 export function WebpayCheckoutButton() {
   const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
   const items = useCartStore((state) => state.items)
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -19,6 +20,7 @@ export function WebpayCheckoutButton() {
       return
     }
 
+    setErrorMessage("")
     setLoading(true)
 
     try {
@@ -59,7 +61,7 @@ export function WebpayCheckoutButton() {
       form.submit()
     } catch (error) {
       console.error("Error creating Webpay transaction:", error)
-      alert("Error al iniciar pago con Webpay. Intenta nuevamente.")
+      setErrorMessage("Error al iniciar pago con Webpay. Intenta nuevamente.")
     } finally {
       setLoading(false)
     }
@@ -68,30 +70,34 @@ export function WebpayCheckoutButton() {
   const isLoading = loading || status === "loading"
 
   return (
-    <Button
-      onClick={handleCheckout}
-      disabled={isLoading || items.length === 0}
-      className="w-full"
-      size="lg"
-      variant="outline"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Redirigiendo...
-        </>
-      ) : !session ? (
-        <>
-          <LogIn className="mr-2 h-4 w-4" />
-          Iniciar sesión para pagar
-        </>
-      ) : (
-        <>
-          <Landmark className="mr-2 h-4 w-4" />
-          Pagar con Webpay
-        </>
+    <div className="space-y-2">
+      <Button
+        onClick={handleCheckout}
+        disabled={isLoading || items.length === 0}
+        className="w-full"
+        size="lg"
+        variant="outline"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Redirigiendo...
+          </>
+        ) : !session ? (
+          <>
+            <LogIn className="mr-2 h-4 w-4" />
+            Iniciar sesión para pagar
+          </>
+        ) : (
+          <>
+            <Landmark className="mr-2 h-4 w-4" />
+            Pagar con Webpay
+          </>
+        )}
+      </Button>
+      {errorMessage && (
+        <p className="text-xs text-destructive text-center">{errorMessage}</p>
       )}
-    </Button>
+    </div>
   )
 }
-

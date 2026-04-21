@@ -23,12 +23,13 @@ async function extractToken(request: NextRequest) {
   const queryToken = request.nextUrl.searchParams.get("token_ws")
   if (queryToken) return queryToken
 
-  const contentType = request.headers.get("content-type") || ""
-  if (!contentType.includes("application/x-www-form-urlencoded")) return null
-
-  const formData = await request.formData()
-  const token = formData.get("token_ws")
-  return typeof token === "string" ? token : null
+  try {
+    const formData = await request.formData()
+    const token = formData.get("token_ws")
+    return typeof token === "string" ? token : null
+  } catch {
+    return null
+  }
 }
 
 async function handleCommit(request: NextRequest) {
@@ -62,4 +63,3 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return handleCommit(request)
 }
-
