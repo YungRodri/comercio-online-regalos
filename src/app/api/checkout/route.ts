@@ -158,6 +158,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         ...metadata,
         userId: session.user.id,
+        // Use empty string as sentinel for "no coupon" since Stripe metadata values must be strings
         couponId: couponId ?? "",
         discountAmount: String(discountAmount),
         items: JSON.stringify(items.map((i) => ({ id: i.id, qty: i.quantity }))),

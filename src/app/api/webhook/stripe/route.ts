@@ -37,7 +37,9 @@ export async function POST(request: NextRequest) {
 
       // Get user ID from metadata (set during checkout)
       const userId = session.metadata?.userId
-      const couponId = session.metadata?.couponId || null
+      // Empty string is the sentinel for "no coupon" (Stripe metadata requires strings)
+      const couponIdRaw = session.metadata?.couponId
+      const couponId = couponIdRaw && couponIdRaw !== "" ? couponIdRaw : null
       const discountAmount = parseFloat(session.metadata?.discountAmount || "0")
 
       if (!userId) {

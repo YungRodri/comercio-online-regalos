@@ -47,8 +47,16 @@ export function checkRateLimit(
   return { allowed: true }
 }
 
-/** Periodically purge expired entries to avoid memory leaks. */
-if (typeof setInterval !== "undefined") {
+/**
+ * Periodically purge expired entries to avoid memory leaks.
+ * Guard against serverless environments where setInterval may not
+ * be reliable – the cleanup is a best-effort optimisation only.
+ */
+if (
+  typeof setInterval !== "undefined" &&
+  typeof process !== "undefined" &&
+  process.env.NODE_ENV !== "test"
+) {
   setInterval(() => {
     const now = Date.now()
     for (const [key, entry] of store.entries()) {
@@ -56,5 +64,5 @@ if (typeof setInterval !== "undefined") {
         store.delete(key)
       }
     }
-  }, 60_000)
+  }, 60_000).unref?.()
 }

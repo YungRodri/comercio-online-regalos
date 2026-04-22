@@ -73,8 +73,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    if (!body.name || !body.email || !body.password) {
+      return NextResponse.json(
+        { error: "Nombre, email y contraseña son requeridos" },
+        { status: 400 }
+      )
+    }
+
     // Hash password before saving
-    const hashedPassword = await bcrypt.hash(body.password || "", 10)
+    const hashedPassword = await bcrypt.hash(body.password as string, 10)
 
     const user = await prisma.user.create({
       data: {
