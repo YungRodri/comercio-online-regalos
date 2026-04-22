@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "@/lib/api-auth"
+import { requireWorkerOrAdmin } from "@/lib/api-auth"
 
 export async function GET(request: NextRequest) {
-  const { error } = await requireAdmin()
+  const { error } = await requireWorkerOrAdmin()
   if (error) return error
 
   try {
