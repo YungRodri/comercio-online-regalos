@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
 
     // Require minimum 12 bytes for magic byte detection (WebP needs bytes 0-11)
-    if (buffer.length < 12) {
+    const MIN_MAGIC_BYTES_LENGTH = 12
+    if (buffer.length < MIN_MAGIC_BYTES_LENGTH) {
       return NextResponse.json(
         { error: "El archivo es demasiado pequeño para ser una imagen válida" },
         { status: 400 }
