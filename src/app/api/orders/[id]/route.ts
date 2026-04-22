@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/api-auth"
+import { writeAuditLog } from "@/lib/audit"
 
 type Params = Promise<{ id: string }>
 
@@ -7,6 +9,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Params }
 ) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { id } = await params
 
@@ -44,6 +49,7 @@ export async function GET(
       status: order.status.toLowerCase(),
       subtotal: Number(order.subtotal),
       shipping: Number(order.shipping),
+      discount: Number(order.discount),
       total: Number(order.total),
       paymentMethod: order.paymentMethod,
       notes: order.notes,
@@ -80,9 +86,17 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Params }
 ) {
+  const { session, error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { id } = await params
     const body = await request.json()
+
+    const before = await prisma.order.findUnique({
+      where: { id },
+      select: { status: true, notes: true },
+    })
 
     const order = await prisma.order.update({
       where: { id },
@@ -90,6 +104,16 @@ export async function PUT(
         status: body.status?.toUpperCase(),
         notes: body.notes,
       },
+    })
+
+    await writeAuditLog({
+      userId: session!.user.id,
+      userEmail: session!.user.email!,
+      action: "UPDATE",
+      resource: "order",
+      resourceId: id,
+      before,
+      after: { status: order.status, notes: order.notes },
     })
 
     return NextResponse.json({

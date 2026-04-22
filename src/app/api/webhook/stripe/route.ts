@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
 
       // Get user ID from metadata (set during checkout)
       const userId = session.metadata?.userId
+      const couponId = session.metadata?.couponId || null
+      const discountAmount = parseFloat(session.metadata?.discountAmount || "0")
 
       if (!userId) {
         console.error("No userId in session metadata")
@@ -90,10 +92,12 @@ export async function POST(request: NextRequest) {
           data: {
             userId: user.id,
             addressId: address.id,
+            couponId: couponId || null,
             orderNumber: `BT-${Date.now()}`,
             status: "PROCESSING",
             subtotal,
             shipping,
+            discount: discountAmount,
             total,
             paymentMethod: "Stripe",
             stripeSessionId: session.id,
@@ -119,6 +123,14 @@ export async function POST(request: NextRequest) {
             data: {
               stock: { decrement: item.qty },
             },
+          })
+        }
+
+        // Increment coupon usage count
+        if (couponId) {
+          await prisma.coupon.update({
+            where: { id: couponId },
+            data: { usedCount: { increment: 1 } },
           })
         }
 
