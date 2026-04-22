@@ -28,6 +28,9 @@ function SuccessContent() {
       navigator.clipboard.writeText(code).then(() => {
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
+      }).catch(() => {
+        // Fallback: select text manually if clipboard API is unavailable
+        alert(`Código de seguimiento: ${code}`)
       })
     }
   }
