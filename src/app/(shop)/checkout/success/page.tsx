@@ -17,6 +17,7 @@ function SuccessContent() {
   const transactionId = searchParams.get("transaction_id")
   const clearCart = useCartStore((state) => state.clearCart)
   const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
 
   useEffect(() => {
     clearCart()
@@ -27,10 +28,11 @@ function SuccessContent() {
     if (code) {
       navigator.clipboard.writeText(code).then(() => {
         setCopied(true)
+        setCopyFailed(false)
         setTimeout(() => setCopied(false), 2000)
       }).catch(() => {
-        // Fallback: select text manually if clipboard API is unavailable
-        alert(`Código de seguimiento: ${code}`)
+        // Clipboard API unavailable — reveal an inline field so the user can copy manually
+        setCopyFailed(true)
       })
     }
   }
@@ -71,6 +73,19 @@ function SuccessContent() {
               </div>
               {copied && (
                 <p className="text-xs text-green-600">¡Código copiado!</p>
+              )}
+              {copyFailed && (
+                <div className="mt-1 space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    No se pudo copiar automáticamente. Copia el código manualmente:
+                  </p>
+                  <input
+                    readOnly
+                    value={displayCode}
+                    className="w-full rounded border bg-background px-2 py-1 text-center font-mono text-sm"
+                    onFocus={(e) => e.target.select()}
+                  />
+                </div>
               )}
               <p className="text-xs text-muted-foreground">
                 Guarda este código para hacer seguimiento de tu pedido
