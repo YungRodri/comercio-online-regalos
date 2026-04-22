@@ -4,6 +4,8 @@ import { requireAuth } from "@/lib/api-auth"
 
 const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
 const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
+// Minimum bytes needed for magic byte detection (WebP header spans bytes 0-11)
+const MIN_MAGIC_BYTES_LENGTH = 12
 
 export async function POST(request: NextRequest) {
   const { error } = await requireAuth()
@@ -44,7 +46,6 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
 
     // Require minimum 12 bytes for magic byte detection (WebP needs bytes 0-11)
-    const MIN_MAGIC_BYTES_LENGTH = 12
     if (buffer.length < MIN_MAGIC_BYTES_LENGTH) {
       return NextResponse.json(
         { error: "El archivo es demasiado pequeño para ser una imagen válida" },
