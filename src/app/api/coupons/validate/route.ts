@@ -13,12 +13,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const code = (body.code as string)?.trim().toUpperCase()
-    const orderTotal = Number(body.orderTotal)
-
-    if (!code) {
+    if (typeof body.code !== "string" || !body.code) {
       return NextResponse.json({ error: "Código de cupón requerido" }, { status: 400 })
     }
+    const code = body.code.trim().toUpperCase()
+    const orderTotal = Number(body.orderTotal)
 
     const coupon = await prisma.coupon.findUnique({ where: { code } })
 
