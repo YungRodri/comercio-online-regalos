@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "@/lib/api-auth"
+import { requireWorkerOrAdmin, requireAdmin } from "@/lib/api-auth"
 import { writeAuditLog } from "@/lib/audit"
 
 type Params = Promise<{ id: string }>
@@ -9,7 +9,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Params }
 ) {
-  const { error } = await requireAdmin()
+  const { error } = await requireWorkerOrAdmin()
   if (error) return error
 
   try {
@@ -19,7 +19,7 @@ export async function GET(
       where: { id },
       include: {
         user: {
-          select: { name: true, email: true },
+          select: { name: true, email: true, phone: true },
         },
         address: true,
         items: {
@@ -42,11 +42,14 @@ export async function GET(
     return NextResponse.json({
       id: order.id,
       orderNumber: order.orderNumber,
+      trackingCode: order.trackingCode,
       customer: {
         name: order.user.name,
         email: order.user.email,
+        phone: order.user.phone,
       },
       status: order.status.toLowerCase(),
+      fabricationNote: order.fabricationNote,
       subtotal: Number(order.subtotal),
       shipping: Number(order.shipping),
       discount: Number(order.discount),
@@ -69,6 +72,7 @@ export async function GET(
         price: Number(item.price),
         total: Number(item.total),
         image: item.product.images[0] || "",
+        customImage: item.customImage || null,
       })),
       createdAt: order.createdAt.toISOString(),
       updatedAt: order.updatedAt.toISOString(),
@@ -86,7 +90,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Params }
 ) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requireWorkerOrAdmin()
   if (error) return error
 
   try {
@@ -95,15 +99,27 @@ export async function PUT(
 
     const before = await prisma.order.findUnique({
       where: { id },
-      select: { status: true, notes: true },
+      select: { status: true, notes: true, fabricationNote: true },
     })
+
+    // Workers can update status and fabricationNote but NOT notes (admin-only field)
+    const isAdmin = session!.user.role === "ADMIN"
+    const updateData: Record<string, unknown> = {
+      status: body.status?.toUpperCase(),
+      fabricationNote: body.fabricationNote,
+    }
+    if (isAdmin && body.notes !== undefined) {
+      updateData.notes = body.notes
+    }
+
+    // Remove undefined fields
+    Object.keys(updateData).forEach(
+      (k) => updateData[k] === undefined && delete updateData[k]
+    )
 
     const order = await prisma.order.update({
       where: { id },
-      data: {
-        status: body.status?.toUpperCase(),
-        notes: body.notes,
-      },
+      data: updateData,
     })
 
     await writeAuditLog({
@@ -113,19 +129,53 @@ export async function PUT(
       resource: "order",
       resourceId: id,
       before,
-      after: { status: order.status, notes: order.notes },
+      after: { status: order.status, notes: order.notes, fabricationNote: order.fabricationNote },
     })
 
     return NextResponse.json({
       id: order.id,
       orderNumber: order.orderNumber,
+      trackingCode: order.trackingCode,
       status: order.status.toLowerCase(),
+      fabricationNote: order.fabricationNote,
       updatedAt: order.updatedAt.toISOString(),
     })
   } catch (error) {
     console.error("Error updating order:", error)
     return NextResponse.json(
       { error: "Error updating order" },
+      { status: 500 }
+    )
+  }
+}
+
+// Only admins can delete orders
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Params }
+) {
+  const { session, error } = await requireAdmin()
+  if (error) return error
+
+  try {
+    const { id } = await params
+    await prisma.order.delete({ where: { id } })
+
+    await writeAuditLog({
+      userId: session!.user.id,
+      userEmail: session!.user.email!,
+      action: "DELETE",
+      resource: "order",
+      resourceId: id,
+      before: null,
+      after: null,
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting order:", error)
+    return NextResponse.json(
+      { error: "Error deleting order" },
       { status: 500 }
     )
   }

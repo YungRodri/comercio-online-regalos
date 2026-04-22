@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "@/lib/api-auth"
+import { requireAdmin, requireWorkerOrAdmin } from "@/lib/api-auth"
 
 export async function GET(request: NextRequest) {
-  const { error } = await requireAdmin()
+  // Workers can read users (to get contact info for orders) but not create/modify
+  const { session, error } = await requireWorkerOrAdmin()
   if (error) return error
+
+  const isWorker = session!.user.role === "WORKER"
 
   try {
     const { searchParams } = new URL(request.url)
@@ -28,6 +31,7 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         email: true,
+        phone: true,
         avatar: true,
         role: true,
         status: true,
@@ -47,13 +51,16 @@ export async function GET(request: NextRequest) {
     const transformedUsers = users.map((user) => ({
       id: user.id,
       name: user.name,
+      // Workers can see email and phone (contact info), but not sensitive data
       email: user.email,
+      phone: (user as { phone?: string | null }).phone ?? null,
       avatar: user.avatar,
       role: user.role.toLowerCase(),
       status: user.status.toLowerCase(),
       createdAt: user.createdAt.toISOString(),
       orders: user._count.orders,
-      totalSpent: user.orders.reduce((sum, order) => sum + Number(order.total), 0),
+      // Workers don't need financial totals
+      totalSpent: isWorker ? 0 : user.orders.reduce((sum, order) => sum + Number(order.total), 0),
     }))
 
     return NextResponse.json(transformedUsers)

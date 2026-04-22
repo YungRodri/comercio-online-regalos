@@ -24,7 +24,7 @@ const userSchema = z.object({
   email: z.string().email("Email invalido"),
   phone: z.string().optional(),
   password: z.string().min(6, "La contrasena debe tener al menos 6 caracteres"),
-  role: z.enum(["customer", "admin"]),
+  role: z.enum(["customer", "worker", "admin"]),
 })
 
 type UserFormData = z.infer<typeof userSchema>
@@ -127,13 +127,14 @@ export default function NewUserPage() {
               <Label htmlFor="role">Rol</Label>
               <Select
                 defaultValue="customer"
-                onValueChange={(value) => setValue("role", value as "customer" | "admin")}
+                onValueChange={(value) => setValue("role", value as "customer" | "worker" | "admin")}
               >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Seleccionar rol" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="customer">Cliente</SelectItem>
+                  <SelectItem value="worker">Trabajador</SelectItem>
                   <SelectItem value="admin">Administrador</SelectItem>
                 </SelectContent>
               </Select>

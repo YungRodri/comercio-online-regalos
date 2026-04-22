@@ -11,6 +11,8 @@ import {
   Store,
   Tag,
   ShoppingCart,
+  Palette,
+  Calendar,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -22,6 +24,8 @@ const navigation = [
   { name: "Cupones", href: "/admin/coupons", icon: Tag },
   { name: "Pagos", href: "/admin/payments", icon: CreditCard },
   { name: "Usuarios", href: "/admin/users", icon: Users },
+  { name: "Eventos", href: "/admin/events", icon: Calendar },
+  { name: "Branding", href: "/admin/branding", icon: Palette },
   { name: "Configuracion", href: "/admin/settings", icon: Settings },
 ]
 
@@ -39,9 +43,12 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive =
+            item.href === "/admin"
+              ? pathname === "/admin"
+              : pathname.startsWith(item.href)
           return (
             <Link
               key={item.name}

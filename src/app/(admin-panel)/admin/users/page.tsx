@@ -41,6 +41,7 @@ const statusConfig = {
 
 const roleLabels: Record<string, string> = {
   admin: "Administrador",
+  worker: "Trabajador",
   customer: "Cliente",
 }
 
@@ -108,7 +109,7 @@ export default function AdminUsersPage() {
 
   const activeUsers = users.filter((u) => u.status === "active").length
   const adminUsers = users.filter((u) => u.role === "admin").length
-  const totalSpent = users.reduce((sum, u) => sum + u.totalSpent, 0)
+  const workerUsers = users.filter((u) => u.role === "worker").length
 
   return (
     <div className="space-y-6">
@@ -163,11 +164,11 @@ export default function AdminUsersPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Gastado
+              Trabajadores
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">S/ {totalSpent.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-blue-600">{workerUsers}</p>
           </CardContent>
         </Card>
       </div>
@@ -202,6 +203,7 @@ export default function AdminUsersPage() {
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="customer">Clientes</SelectItem>
+            <SelectItem value="worker">Trabajadores</SelectItem>
             <SelectItem value="admin">Admins</SelectItem>
           </SelectContent>
         </Select>
@@ -251,7 +253,15 @@ export default function AdminUsersPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={user.role === "admin" ? "default" : "outline"}>
+                          <Badge variant={
+                            user.role === "admin"
+                              ? "default"
+                              : user.role === "worker"
+                              ? "secondary"
+                              : "outline"
+                          }
+                            className={user.role === "worker" ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" : ""}
+                          >
                             {roleLabels[user.role] || user.role}
                           </Badge>
                         </TableCell>
@@ -285,6 +295,12 @@ export default function AdminUsersPage() {
                                 <DropdownMenuItem>
                                   <Shield className="mr-2 h-4 w-4" />
                                   Hacer admin
+                                </DropdownMenuItem>
+                              )}
+                              {user.role !== "worker" && user.role !== "admin" && (
+                                <DropdownMenuItem>
+                                  <Shield className="mr-2 h-4 w-4 text-blue-600" />
+                                  Hacer trabajador
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuSeparator />

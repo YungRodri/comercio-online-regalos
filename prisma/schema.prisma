@@ -12,6 +12,7 @@ datasource db {
 
 enum UserRole {
   ADMIN
+  WORKER
   MODERATOR
   CUSTOMER
 }
@@ -145,7 +146,9 @@ model Address {
 model Order {
   id              String      @id @default(cuid())
   orderNumber     String      @unique
+  trackingCode    String      @unique @default(cuid())
   status          OrderStatus @default(PENDING)
+  fabricationNote String?
   subtotal        Decimal     @db.Decimal(10, 2)
   shipping        Decimal     @db.Decimal(10, 2)
   discount        Decimal     @default(0) @db.Decimal(10, 2)
@@ -169,15 +172,17 @@ model Order {
 
   @@index([userId])
   @@index([orderNumber])
+  @@index([trackingCode])
   @@map("orders")
 }
 
 model OrderItem {
-  id       String  @id @default(cuid())
-  name     String
-  price    Decimal @db.Decimal(10, 2)
-  quantity Int
-  total    Decimal @db.Decimal(10, 2)
+  id          String  @id @default(cuid())
+  name        String
+  price       Decimal @db.Decimal(10, 2)
+  quantity    Int
+  total       Decimal @db.Decimal(10, 2)
+  customImage String?
 
   orderId String
   order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -228,4 +233,34 @@ model AuditLog {
   @@index([userId])
   @@index([resource, resourceId])
   @@map("audit_logs")
+}
+
+// ==================== SITE SETTINGS ====================
+
+model SiteSettings {
+  id          String   @id @default("singleton")
+  storeName   String   @default("BasicTechShop")
+  logoUrl     String?
+  bannerUrl   String?
+  bannerTitle String?
+  bannerText  String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// ==================== EVENTS ====================
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String?
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("events")
 }
