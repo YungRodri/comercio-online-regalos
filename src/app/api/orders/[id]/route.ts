@@ -104,17 +104,17 @@ export async function PUT(
 
     // Workers can update status and fabricationNote but NOT notes (admin-only field)
     const isAdmin = session!.user.role === "ADMIN"
-    const updateData: Record<string, unknown> = {
+    const rawUpdate: Record<string, unknown> = {
       status: body.status?.toUpperCase(),
       fabricationNote: body.fabricationNote,
     }
     if (isAdmin && body.notes !== undefined) {
-      updateData.notes = body.notes
+      rawUpdate.notes = body.notes
     }
 
-    // Remove undefined fields
-    Object.keys(updateData).forEach(
-      (k) => updateData[k] === undefined && delete updateData[k]
+    // Remove undefined values without mutating while iterating
+    const updateData = Object.fromEntries(
+      Object.entries(rawUpdate).filter(([, v]) => v !== undefined)
     )
 
     const order = await prisma.order.update({
