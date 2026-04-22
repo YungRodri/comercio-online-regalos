@@ -72,7 +72,7 @@ function SuccessContent() {
                 </Button>
               </div>
               {copied && (
-                <p className="text-xs text-green-600">¡Código copiado!</p>
+                <p className="text-xs text-green-600" role="status" aria-live="polite">¡Código copiado!</p>
               )}
               {copyFailed && (
                 <div className="mt-1 space-y-1">
