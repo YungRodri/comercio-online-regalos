@@ -5,6 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Menu,
+  Tag,
+  ShoppingCart,
   LayoutDashboard,
   Package,
   CreditCard,
@@ -25,6 +27,8 @@ import {
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Productos", href: "/admin/products", icon: Package },
+  { name: "Pedidos", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Cupones", href: "/admin/coupons", icon: Tag },
   { name: "Pagos", href: "/admin/payments", icon: CreditCard },
   { name: "Usuarios", href: "/admin/users", icon: Users },
   { name: "Configuracion", href: "/admin/settings", icon: Settings },

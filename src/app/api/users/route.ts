@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/api-auth"
 
 export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { searchParams } = new URL(request.url)
     const role = searchParams.get("role")
@@ -62,14 +67,19 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
 
-    // In a real app, you'd hash the password here
+    // Hash password before saving
+    const hashedPassword = await bcrypt.hash(body.password || "", 10)
+
     const user = await prisma.user.create({
       data: {
         email: body.email,
-        password: body.password, // Should be hashed
+        password: hashedPassword,
         name: body.name,
         phone: body.phone,
         role: body.role?.toUpperCase() || "CUSTOMER",

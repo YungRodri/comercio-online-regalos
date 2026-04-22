@@ -9,6 +9,8 @@ import {
   Users,
   Settings,
   Store,
+  Tag,
+  ShoppingCart,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -16,6 +18,8 @@ import { Button } from "@/components/ui/button"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Productos", href: "/admin/products", icon: Package },
+  { name: "Pedidos", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Cupones", href: "/admin/coupons", icon: Tag },
   { name: "Pagos", href: "/admin/payments", icon: CreditCard },
   { name: "Usuarios", href: "/admin/users", icon: Users },
   { name: "Configuracion", href: "/admin/settings", icon: Settings },
