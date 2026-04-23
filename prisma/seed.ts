@@ -10,6 +10,18 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   console.log("Seeding database...")
 
+  // Safety guard: never wipe data in production
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "❌  Seed aborted: running in production is not allowed.\n" +
+      "   Set NODE_ENV=development or run with FORCE_SEED=true to override."
+    )
+    if (process.env.FORCE_SEED !== "true") {
+      process.exit(1)
+    }
+    console.warn("⚠️  FORCE_SEED=true detected — proceeding with production seed.")
+  }
+
   // Clear existing data
   await prisma.orderItem.deleteMany()
   await prisma.order.deleteMany()
