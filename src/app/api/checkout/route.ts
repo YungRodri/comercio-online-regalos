@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 1500, // S/ 15.00
+                amount: 1500, // $ 15.00
                 currency: "pen",
               },
               display_name: "Envio express",
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 1500, // S/ 15.00
+                amount: 1500, // $ 15.00
                 currency: "pen",
               },
               display_name: "Envio estandar",
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 3000, // S/ 30.00
+                amount: 3000, // $ 30.00
                 currency: "pen",
               },
               display_name: "Envio express",

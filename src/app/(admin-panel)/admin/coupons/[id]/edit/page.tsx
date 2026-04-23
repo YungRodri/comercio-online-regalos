@@ -181,14 +181,14 @@ export default function EditCouponPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PERCENT">Porcentaje (%)</SelectItem>
-                    <SelectItem value="FIXED">Monto fijo (S/)</SelectItem>
+                    <SelectItem value="FIXED">Monto fijo ($)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="discountValue">
-                  Valor del descuento * {discountType === "PERCENT" ? "(%)" : "(S/)"}
+                  Valor del descuento * {discountType === "PERCENT" ? "(%)" : "($)"}
                 </Label>
                 <Input
                   id="discountValue"
@@ -205,7 +205,7 @@ export default function EditCouponPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="minOrderValue">Mínimo de compra (S/)</Label>
+                <Label htmlFor="minOrderValue">Mínimo de compra ($)</Label>
                 <Input
                   id="minOrderValue"
                   type="number"

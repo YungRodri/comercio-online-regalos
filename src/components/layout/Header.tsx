@@ -34,11 +34,15 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">BT</span>
+            <div className="relative h-10 w-10">
+              <img
+                src="/logo.png"
+                alt="cycregalos logo"
+                className="object-contain w-full h-full"
+              />
             </div>
-            <span className="hidden text-xl font-bold sm:inline-block">
-              BasicTechShop
+            <span className="hidden text-xl font-bold sm:inline-block tracking-tight">
+              cycregalos
             </span>
           </Link>
 
@@ -66,6 +70,13 @@ export function Header() {
             <Link href="/products" className="hidden md:block">
               <Button variant="ghost" size="sm" className="font-semibold">
                 PRODUCTOS
+              </Button>
+            </Link>
+            
+            {/* Nosotros Link */}
+            <Link href="/nosotros" className="hidden md:block">
+              <Button variant="ghost" size="sm" className="font-semibold">
+                NOSOTROS
               </Button>
             </Link>
 

@@ -2,18 +2,18 @@
 
 import { useEffect } from "react"
 import Link from "next/link"
-import { Monitor, Keyboard, Mouse, Headphones, HardDrive, Cpu, Gamepad2, Package } from "lucide-react"
+import { Heart, Gift, Sparkles, Package, Star, Diamond, Coffee, ShoppingBag } from "lucide-react"
 import { useProductsStore } from "@/stores/products-store"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Monitor: Monitor,
-  Keyboard: Keyboard,
-  Mouse: Mouse,
-  Headphones: Headphones,
-  HardDrive: HardDrive,
-  Cpu: Cpu,
-  Gamepad2: Gamepad2,
+  Heart: Heart,
+  Gift: Gift,
+  Sparkles: Sparkles,
+  Star: Star,
+  Diamond: Diamond,
+  Coffee: Coffee,
+  ShoppingBag: ShoppingBag,
   Package: Package,
 }
 

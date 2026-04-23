@@ -94,7 +94,7 @@ export default function AdminPaymentsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-600">
-              S/ {totalRevenue.toLocaleString()}
+              $ {totalRevenue.toLocaleString()}
             </p>
           </CardContent>
         </Card>
@@ -106,7 +106,7 @@ export default function AdminPaymentsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-600">
-              S/ {pendingAmount.toLocaleString()}
+              $ {pendingAmount.toLocaleString()}
             </p>
           </CardContent>
         </Card>
@@ -118,7 +118,7 @@ export default function AdminPaymentsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-600">
-              S/ {refundedAmount.toLocaleString()}
+              $ {refundedAmount.toLocaleString()}
             </p>
           </CardContent>
         </Card>
@@ -200,7 +200,7 @@ export default function AdminPaymentsPage() {
                         </TableCell>
                         <TableCell>{methodLabels[payment.method]}</TableCell>
                         <TableCell className="font-medium">
-                          S/ {payment.amount.toFixed(2)}
+                          $ {payment.amount.toLocaleString('es-CL')}
                         </TableCell>
                         <TableCell>
                           <Badge variant={status.variant} className={status.className}>
@@ -264,7 +264,7 @@ export default function AdminPaymentsPage() {
                         <TableCell>{payment.userName}</TableCell>
                         <TableCell className="font-mono text-sm">{payment.orderId}</TableCell>
                         <TableCell>{methodLabels[payment.method]}</TableCell>
-                        <TableCell className="font-medium">S/ {payment.amount.toFixed(2)}</TableCell>
+                        <TableCell className="font-medium">$ {payment.amount.toLocaleString('es-CL')}</TableCell>
                         <TableCell className="text-muted-foreground">{payment.createdAt}</TableCell>
                         <TableCell>
                           <DropdownMenu>
@@ -317,7 +317,7 @@ export default function AdminPaymentsPage() {
                         <TableCell>{payment.userName}</TableCell>
                         <TableCell className="font-mono text-sm">{payment.orderId}</TableCell>
                         <TableCell>{methodLabels[payment.method]}</TableCell>
-                        <TableCell className="font-medium">S/ {payment.amount.toFixed(2)}</TableCell>
+                        <TableCell className="font-medium">$ {payment.amount.toLocaleString('es-CL')}</TableCell>
                         <TableCell className="text-muted-foreground">{payment.createdAt}</TableCell>
                         <TableCell>
                           <DropdownMenu>
@@ -366,7 +366,7 @@ export default function AdminPaymentsPage() {
                         <TableCell>{payment.userName}</TableCell>
                         <TableCell className="font-mono text-sm">{payment.orderId}</TableCell>
                         <TableCell>{methodLabels[payment.method]}</TableCell>
-                        <TableCell className="font-medium">S/ {payment.amount.toFixed(2)}</TableCell>
+                        <TableCell className="font-medium">$ {payment.amount.toLocaleString('es-CL')}</TableCell>
                         <TableCell className="text-muted-foreground">{payment.createdAt}</TableCell>
                         <TableCell>
                           <DropdownMenu>

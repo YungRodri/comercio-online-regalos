@@ -147,7 +147,7 @@ function TrackingForm() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total</p>
-                  <p className="font-medium">S/ {result.total.toFixed(2)}</p>
+                  <p className="font-medium">$ {result.total.toLocaleString('es-CL')}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Fecha de pedido</p>

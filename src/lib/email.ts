@@ -40,7 +40,7 @@ function orderConfirmationHtml(payload: OrderConfirmationPayload): string {
           <span style="font-size:12px;color:#666;">Cantidad: ${item.quantity}</span>
         </td>
         <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;font-size:14px;">
-          S/ ${(item.price * item.quantity).toFixed(2)}
+          $ ${(item.price * item.quantity).toLocaleString('es-CL')}
         </td>
       </tr>`
     )
@@ -99,7 +99,7 @@ function orderConfirmationHtml(payload: OrderConfirmationPayload): string {
                   <tr>
                     <td style="padding:16px 0 0;font-size:15px;font-weight:700;color:#111;">Total</td>
                     <td style="padding:16px 0 0;text-align:right;font-size:18px;font-weight:700;color:#18181b;">
-                      S/ ${orderTotal.toFixed(2)}
+                      $ ${orderTotal.toLocaleString('es-CL')}
                     </td>
                   </tr>
                 </tfoot>

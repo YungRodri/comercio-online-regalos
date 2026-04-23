@@ -201,7 +201,7 @@ export default function AdminOrdersPage() {
                         {order.itemCount}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        S/ {order.total.toFixed(2)}
+                        $ {order.total.toLocaleString('es-CL')}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(order.createdAt).toLocaleDateString("es-PE", {
