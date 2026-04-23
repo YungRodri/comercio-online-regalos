@@ -16,36 +16,36 @@ import {
 const slides = [
   {
     id: 1,
-    badge: "Nuevo Lanzamiento",
-    title: "RTX Serie 40",
-    subtitle: "Potencia Maxima",
-    description: "Las tarjetas graficas mas potentes para gaming y creacion de contenido",
-    cta: "Ver GPUs",
-    href: "/products?category=componentes",
-    gradient: "from-violet-900 via-purple-900 to-slate-900",
-    image: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=800",
+    badge: "Especial Día de la Madre",
+    title: "Regalos con Sentido",
+    subtitle: "Hechos con Amor",
+    description: "Cajas personalizadas y detalles únicos que le sacarán una sonrisa.",
+    cta: "Ver Regalos",
+    href: "/products?category=boxes",
+    gradient: "from-pink-100 via-rose-50 to-pink-100",
+    image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800",
   },
   {
     id: 2,
-    badge: "Hasta 40% OFF",
-    title: "Monitores Gaming",
-    subtitle: "240Hz QHD",
-    description: "La mejor experiencia visual con monitores de alta tasa de refresco",
-    cta: "Ver Ofertas",
-    href: "/products?category=monitores",
-    gradient: "from-blue-900 via-cyan-900 to-slate-900",
-    image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800",
+    badge: "Nuevos Accesorios",
+    title: "Joyería que",
+    subtitle: "Cuenta Historias",
+    description: "Hermosos collares y pulseras para sorprenderla en su día.",
+    cta: "Ver Joyería",
+    href: "/products?category=accesorios",
+    gradient: "from-teal-50 via-emerald-50 to-pink-50",
+    image: "https://images.unsplash.com/photo-1515562141207-7a8f73fce811?w=800",
   },
   {
     id: 3,
-    badge: "Bestseller",
-    title: "Perifericos Pro",
-    subtitle: "Precision Total",
-    description: "Teclados mecanicos y mouse gaming de las mejores marcas",
+    badge: "Favoritos",
+    title: "Papelería",
+    subtitle: "Personalizada",
+    description: "Planners, libretas y agendas diseñadas exclusivamente.",
     cta: "Explorar",
-    href: "/products?category=teclados",
-    gradient: "from-emerald-900 via-teal-900 to-slate-900",
-    image: "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=800",
+    href: "/products?category=papeleria",
+    gradient: "from-rose-50 via-pink-100 to-rose-100",
+    image: "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=800",
   },
 ]
 
@@ -83,21 +83,21 @@ export function HeroBanner() {
                   <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
                     {/* Text Content */}
                     <div className="max-w-xl text-center lg:text-left">
-                      <span className="inline-block rounded-full bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-medium text-white mb-3">
+                      <span className="inline-block rounded-full bg-primary/20 backdrop-blur-sm px-3 py-1 text-xs font-medium text-slate-800 mb-3">
                         {slide.badge}
                       </span>
-                      <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                      <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                         {slide.title}
                         <span className="block text-primary">{slide.subtitle}</span>
                       </h2>
-                      <p className="mt-3 text-sm sm:text-base text-slate-300 max-w-md mx-auto lg:mx-0">
+                      <p className="mt-3 text-sm sm:text-base text-slate-600 max-w-md mx-auto lg:mx-0">
                         {slide.description}
                       </p>
                       <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                         <Button asChild size="default">
                           <Link href={slide.href}>{slide.cta}</Link>
                         </Button>
-                        <Button asChild variant="outline" className="border-slate-600 text-white hover:bg-slate-800">
+                        <Button asChild variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-100">
                           <Link href="/products">Ver Todo</Link>
                         </Button>
                       </div>
@@ -131,7 +131,7 @@ export function HeroBanner() {
           {slides.map((_, index) => (
             <div
               key={index}
-              className="h-1.5 w-6 rounded-full bg-white/30 transition-colors"
+              className="h-1.5 w-6 rounded-full bg-primary/40 transition-colors"
             />
           ))}
         </div>

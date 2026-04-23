@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (coupon.minOrderValue !== null && orderTotal < Number(coupon.minOrderValue)) {
       return NextResponse.json(
         {
-          error: `El pedido mínimo para este cupón es S/ ${Number(coupon.minOrderValue).toFixed(2)}`,
+          error: `El pedido mínimo para este cupón es $ ${Number(coupon.minOrderValue).toLocaleString('es-CL')}`,
         },
         { status: 400 }
       )

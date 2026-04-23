@@ -31,8 +31,10 @@ export interface Brand {
 }
 
 export interface CartItem {
+  cartItemId: string // Unique ID for the cart item instance (e.g. productId + customImage)
   product: Product
   quantity: number
+  customImage?: string
 }
 
 export interface FilterState {

@@ -4,8 +4,8 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { SessionProvider } from "@/components/providers/SessionProvider"
 
 export const metadata: Metadata = {
-  title: "BasicTechShop - Tu Tienda de Tecnologia",
-  description: "Los mejores productos de computacion: PCs, monitores, teclados, mouse y mas. Envio a todo Peru.",
+  title: "Cyc Regalos - Regalos con amor",
+  description: "Encuentra el regalo perfecto para el Día de la Madre. Cajas personalizadas, papelería y detalles únicos.",
 }
 
 export default function RootLayout({
@@ -19,8 +19,8 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false}
             disableTransitionOnChange
           >
             {children}

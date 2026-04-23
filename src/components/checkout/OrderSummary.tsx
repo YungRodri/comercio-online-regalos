@@ -23,10 +23,10 @@ export function OrderSummary({ items }: OrderSummaryProps) {
       {/* Items */}
       <div className="mt-4 space-y-3">
         {items.map((item) => (
-          <div key={item.product.id} className="flex gap-3">
+          <div key={item.cartItemId} className="flex gap-3">
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
               <Image
-                src={item.product.images[0]}
+                src={item.customImage || item.product.images[0]}
                 alt={item.product.name}
                 fill
                 className="object-cover"
@@ -41,7 +41,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
               <p className="text-xs text-muted-foreground">{item.product.brand}</p>
             </div>
             <p className="text-sm font-medium">
-              S/ {(item.product.price * item.quantity).toFixed(2)}
+              $ {(item.product.price * item.quantity).toLocaleString('es-CL')}
             </p>
           </div>
         ))}
@@ -53,7 +53,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
-          <span>S/ {subtotal.toFixed(2)}</span>
+          <span>$ {subtotal.toLocaleString('es-CL')}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">IGV (18%)</span>
@@ -61,7 +61,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Envio</span>
-          <span>{shipping === 0 ? "Gratis" : `S/ ${shipping.toFixed(2)}`}</span>
+          <span>{shipping === 0 ? "Gratis" : `$ ${shipping.toLocaleString('es-CL')}`}</span>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
 
       <div className="flex justify-between font-semibold">
         <span>Total</span>
-        <span className="text-lg text-primary">S/ {total.toFixed(2)}</span>
+        <span className="text-lg text-primary">$ {total.toLocaleString('es-CL')}</span>
       </div>
     </div>
   )

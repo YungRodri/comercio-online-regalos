@@ -72,7 +72,7 @@ export default function CouponsPage() {
   function formatDiscount(c: Coupon) {
     return c.discountType === "PERCENT"
       ? `${c.discountValue}%`
-      : `S/ ${c.discountValue.toFixed(2)}`
+      : `$ ${c.discountValue.toLocaleString('es-CL')}`
   }
 
   function isExpired(c: Coupon) {
@@ -127,7 +127,7 @@ export default function CouponsPage() {
                   <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
                   <TableCell>{formatDiscount(coupon)}</TableCell>
                   <TableCell>
-                    {coupon.minOrderValue ? `S/ ${coupon.minOrderValue.toFixed(2)}` : "—"}
+                    {coupon.minOrderValue ? `$ ${coupon.minOrderValue.toLocaleString('es-CL')}` : "—"}
                   </TableCell>
                   <TableCell>
                     {coupon.usedCount}

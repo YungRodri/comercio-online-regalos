@@ -178,11 +178,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     <div className="flex flex-1 flex-col justify-center min-w-0">
                       <p className="font-medium text-sm truncate">{item.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        S/ {item.price.toFixed(2)} × {item.quantity}
+                        $ {item.price.toLocaleString('es-CL')} × {item.quantity}
                       </p>
                     </div>
                     <p className="font-semibold text-sm self-center">
-                      S/ {(item.price * item.quantity).toFixed(2)}
+                      $ {(item.price * item.quantity).toLocaleString('es-CL')}
                     </p>
                   </div>
                 ))}
@@ -234,22 +234,22 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>S/ {order.subtotal.toFixed(2)}</span>
+                <span>$ {order.subtotal.toLocaleString('es-CL')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Envío</span>
-                <span>{order.shipping === 0 ? "Gratis" : `S/ ${order.shipping.toFixed(2)}`}</span>
+                <span>{order.shipping === 0 ? "Gratis" : `$ ${order.shipping.toLocaleString('es-CL')}`}</span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Descuento</span>
-                  <span>−S/ {order.discount.toFixed(2)}</span>
+                  <span>−$ {order.discount.toLocaleString('es-CL')}</span>
                 </div>
               )}
               <Separator />
               <div className="flex justify-between font-bold text-base">
                 <span>Total</span>
-                <span className="text-primary">S/ {order.total.toFixed(2)}</span>
+                <span className="text-primary">$ {order.total.toLocaleString('es-CL')}</span>
               </div>
             </CardContent>
           </Card>

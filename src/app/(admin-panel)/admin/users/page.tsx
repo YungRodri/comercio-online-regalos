@@ -271,7 +271,7 @@ export default function AdminUsersPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>{user.orders}</TableCell>
-                        <TableCell>S/ {user.totalSpent.toFixed(2)}</TableCell>
+                        <TableCell>$ {user.totalSpent.toLocaleString('es-CL')}</TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Date(user.createdAt).toLocaleDateString("es-PE")}
                         </TableCell>
