@@ -35,10 +35,10 @@ Este archivo persiste entre sesiones. Marcá cada ítem cuando esté hecho.
 
 ## 🟡 P3 — Brechas de UX (no bloqueante pero necesario)
 
-- [ ] Perfil → botón "Editar" en información personal debe abrir formulario funcional
-- [ ] Perfil → botón "Cambiar contraseña" debe llevar a `/profile/settings` con formulario real
+- [x] Perfil → `/profile/settings` con formularios funcionales (editar nombre/teléfono + cambiar contraseña)
+- [x] API `PATCH /api/users/me` para actualizar datos del usuario autenticado
+- [x] Página de administración de productos: edición funcional (`/admin/products/[id]/edit`)
 - [ ] Notificación de email después de crear una orden (Resend / SendGrid)
-- [ ] Página de administración de productos: agregar edición (`/admin/products/[id]/edit`)
 
 ---
 
@@ -83,13 +83,11 @@ Este archivo persiste entre sesiones. Marcá cada ítem cuando esté hecho.
 - [x] `GET /api/orders/[id]` abierto al dueño del pedido
 - [x] `docs/DEPLOY.md`
 
-### Sesión 2 (próxima)
-- [ ] Perfil editar datos personales (formulario funcional en `/profile/settings`)
-- [ ] `/admin/products/[id]/edit` page
-- [ ] Revisar y probar flujo completo en local con BD real
+### Sesión 2 (esta sesión)
+- [x] `/admin/products/[id]/edit` page
+- [x] `/profile/settings` — formularios funcionales (perfil + contraseña)
+- [x] `PATCH /api/users/me` endpoint
 
-### Sesión 3
+### Sesión 3 (próxima)
 - [ ] Email notifications (Resend)
-- [ ] Testing final E2E
-- [ ] Deploy a Vercel staging
-- [ ] QA completo
+- [ ] Deploy a Vercel staging + QA completo
