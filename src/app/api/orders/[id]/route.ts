@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 import { requireWorkerOrAdmin, requireAdmin } from "@/lib/api-auth"
 import { writeAuditLog } from "@/lib/audit"
 
@@ -9,8 +10,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Params }
 ) {
-  const { error } = await requireWorkerOrAdmin()
-  if (error) return error
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
 
   try {
     const { id } = await params
@@ -37,6 +41,13 @@ export async function GET(
         { error: "Order not found" },
         { status: 404 }
       )
+    }
+
+    // Allow access only to the order owner or admin/worker
+    const isAdminOrWorker =
+      session.user.role === "ADMIN" || session.user.role === "WORKER"
+    if (!isAdminOrWorker && order.userId !== session.user.id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
     }
 
     return NextResponse.json({

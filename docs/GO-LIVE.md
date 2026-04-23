@@ -21,15 +21,15 @@ Este archivo persiste entre sesiones. Marcá cada ítem cuando esté hecho.
 
 - [x] Crear página `/admin/orders` (enlazada desde sidebar y dashboard)
 - [x] Crear página `/profile/orders/[id]` (enlazada desde lista de pedidos del usuario)
-- [x] Agregar `GET /api/orders/[id]` accesible por el dueño del pedido
+- [x] Corregir `GET /api/orders/[id]` — ahora accesible por el dueño del pedido
 
 ---
 
 ## 🟠 P2 — Bugs funcionales críticos
 
-- [x] Corregir `src/app/(shop)/checkout/page.tsx` — usa datos mock; conectar con cart store real y redirigir al flujo de pago
-- [x] Corregir seed (`prisma/seed.ts`) — agregar guardia de producción para no borrar datos
-- [x] Corregir `StripeCheckoutButton` — reemplazar `alert()` por mensaje de error inline
+- [x] Corregir `src/app/(shop)/checkout/page.tsx` — conectado con cart store real + redirige al pago
+- [x] Corregir seed (`prisma/seed.ts`) — guardia de producción agregada
+- [x] Corregir `StripeCheckoutButton` — reemplazado `alert()` por mensaje de error inline
 
 ---
 
@@ -80,10 +80,11 @@ Este archivo persiste entre sesiones. Marcá cada ítem cuando esté hecho.
 - [x] Fix `checkout/page.tsx`
 - [x] Fix seed
 - [x] Fix `StripeCheckoutButton` alert
+- [x] `GET /api/orders/[id]` abierto al dueño del pedido
+- [x] `docs/DEPLOY.md`
 
 ### Sesión 2 (próxima)
-- [ ] `docs/DEPLOY.md` detallado
-- [ ] Perfil editar datos personales (formulario funcional)
+- [ ] Perfil editar datos personales (formulario funcional en `/profile/settings`)
 - [ ] `/admin/products/[id]/edit` page
 - [ ] Revisar y probar flujo completo en local con BD real
 
