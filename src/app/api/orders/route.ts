@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { sendOrderConfirmationEmail } from "@/lib/email"
 
 export async function GET() {
   try {
@@ -112,6 +113,29 @@ export async function POST(request: NextRequest) {
         address: true,
       },
     })
+
+    // Send confirmation email — fetch user email separately (not in order include)
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true, name: true },
+    })
+
+    if (userRecord) {
+      await sendOrderConfirmationEmail({
+        to: userRecord.email,
+        customerName: userRecord.name,
+        orderNumber: order.orderNumber,
+        orderTotal: Number(order.total),
+        orderItems: (body.items || []).map((item: {
+          name: string; price: number; quantity: number
+        }) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        paymentMethod: body.paymentMethod || "Webpay",
+      })
+    }
 
     return NextResponse.json(
       {
