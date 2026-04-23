@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 interface CartItem {
   id: string
@@ -12,6 +13,7 @@ interface CartItem {
 
 interface CheckoutBody {
   items: CartItem[]
+  couponCode?: string
   customerEmail?: string
   shippingAddressId?: string
   metadata?: Record<string, string>
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CheckoutBody = await request.json()
-    const { items, metadata } = body
+    const { items, couponCode, metadata } = body
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -56,6 +58,32 @@ export async function POST(request: NextRequest) {
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0)
     const qualifiesForFreeShipping = subtotal >= 200
 
+    // Validate coupon if provided
+    let couponId: string | null = null
+    let discountAmount = 0
+    if (couponCode) {
+      const code = couponCode.trim().toUpperCase()
+      const coupon = await prisma.coupon.findUnique({ where: { code } })
+      const now = new Date()
+
+      if (
+        coupon &&
+        coupon.isActive &&
+        now >= coupon.startsAt &&
+        (coupon.expiresAt === null || now <= coupon.expiresAt) &&
+        (coupon.maxUses === null || coupon.usedCount < coupon.maxUses) &&
+        (coupon.minOrderValue === null || subtotal >= Number(coupon.minOrderValue))
+      ) {
+        couponId = coupon.id
+        if (coupon.discountType === "PERCENT") {
+          discountAmount = (subtotal * Number(coupon.discountValue)) / 100
+        } else {
+          discountAmount = Math.min(Number(coupon.discountValue), subtotal)
+        }
+        discountAmount = Math.round(discountAmount * 100) / 100
+      }
+    }
+
     // Build shipping options based on subtotal
     const shippingOptions = qualifiesForFreeShipping
       ? [
@@ -77,7 +105,7 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 1500, // S/ 15.00
+                amount: 1500, // $ 15.00
                 currency: "pen",
               },
               display_name: "Envio express",
@@ -93,7 +121,7 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 1500, // S/ 15.00
+                amount: 1500, // $ 15.00
                 currency: "pen",
               },
               display_name: "Envio estandar",
@@ -107,7 +135,7 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 3000, // S/ 30.00
+                amount: 3000, // $ 30.00
                 currency: "pen",
               },
               display_name: "Envio express",
@@ -130,6 +158,9 @@ export async function POST(request: NextRequest) {
       metadata: {
         ...metadata,
         userId: session.user.id,
+        // Use empty string as sentinel for "no coupon" since Stripe metadata values must be strings
+        couponId: couponId ?? "",
+        discountAmount: String(discountAmount),
         items: JSON.stringify(items.map((i) => ({ id: i.id, qty: i.quantity }))),
       },
       shipping_options: shippingOptions,
@@ -141,7 +172,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       sessionId: stripeSession.id,
-      url: stripeSession.url
+      url: stripeSession.url,
+      discountAmount,
     })
   } catch (error) {
     console.error("Error creating checkout session:", error)

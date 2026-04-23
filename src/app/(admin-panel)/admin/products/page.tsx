@@ -292,7 +292,7 @@ export default function AdminProductsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="capitalize">{product.category}</TableCell>
-                      <TableCell>S/ {product.price.toFixed(2)}</TableCell>
+                      <TableCell>$ {product.price.toLocaleString('es-CL')}</TableCell>
                       <TableCell>{product.stock}</TableCell>
                       <TableCell>
                         {product.stock > 0 ? (

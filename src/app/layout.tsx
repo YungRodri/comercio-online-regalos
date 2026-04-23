@@ -1,22 +1,11 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { SessionProvider } from "@/components/providers/SessionProvider"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-})
-
 export const metadata: Metadata = {
-  title: "BasicTechShop - Tu Tienda de Tecnologia",
-  description: "Los mejores productos de computacion: PCs, monitores, teclados, mouse y mas. Envio a todo Peru.",
+  title: "Cyc Regalos - Regalos con amor",
+  description: "Encuentra el regalo perfecto para el Día de la Madre. Cajas personalizadas, papelería y detalles únicos.",
 }
 
 export default function RootLayout({
@@ -26,14 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         <SessionProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false}
             disableTransitionOnChange
           >
             {children}

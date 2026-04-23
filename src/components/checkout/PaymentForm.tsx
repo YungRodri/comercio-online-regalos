@@ -1,10 +1,9 @@
 "use client"
 
-import { CreditCard, Building2, Wallet } from "lucide-react"
+import { CreditCard, Building2, Wallet, Landmark } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
 
 export function PaymentForm() {
   return (
@@ -92,6 +91,27 @@ export function PaymentForm() {
               <p className="font-medium">Billetera Digital</p>
               <p className="text-sm text-muted-foreground">
                 Yape, Plin, PayPal
+              </p>
+            </div>
+          </Label>
+        </div>
+
+        {/* Webpay */}
+        <div>
+          <RadioGroupItem
+            value="webpay"
+            id="webpay"
+            className="peer sr-only"
+          />
+          <Label
+            htmlFor="webpay"
+            className="flex cursor-pointer items-start gap-4 rounded-lg border p-4 peer-data-[state=checked]:border-primary peer-data-[state=checked]:ring-1 peer-data-[state=checked]:ring-primary"
+          >
+            <Landmark className="h-5 w-5 mt-0.5" />
+            <div>
+              <p className="font-medium">Webpay Plus (Chile)</p>
+              <p className="text-sm text-muted-foreground">
+                Débito y crédito con Transbank
               </p>
             </div>
           </Label>

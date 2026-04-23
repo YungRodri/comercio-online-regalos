@@ -62,6 +62,25 @@ npm run dev
 # Abrir http://localhost:3000
 ```
 
+## Variables de entorno (pagos)
+
+Para pagos en local/integración:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+WEBPAY_COMMERCE_CODE=597055555532
+WEBPAY_API_KEY=579B464ADF5F7BC2DFA55EE8E4C8B28A
+WEBPAY_API_BASE_URL=https://webpay3gint.transbank.cl
+```
+
+Para producción de Webpay, usa tus credenciales reales de Transbank y:
+
+```bash
+WEBPAY_API_BASE_URL=https://webpay3g.transbank.cl
+```
+
 ## Scripts Disponibles
 
 | Script | Descripción |
@@ -70,6 +89,15 @@ npm run dev
 | `npm run build` | Genera build de producción |
 | `npm run start` | Inicia servidor de producción |
 | `npm run lint` | Ejecuta ESLint |
+| `npm run postinstall` | Genera cliente Prisma (se ejecuta automáticamente al instalar) |
+
+## Checklist mínima para despliegue
+
+```bash
+npm install
+npm run lint
+npm run build
+```
 
 ## Estructura del Proyecto
 

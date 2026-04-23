@@ -1,7 +1,7 @@
 // prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -12,6 +12,7 @@ datasource db {
 
 enum UserRole {
   ADMIN
+  WORKER
   MODERATOR
   CUSTOMER
 }
@@ -36,6 +37,12 @@ enum PaymentMethod {
   TRANSFER
   WALLET
   CASH_ON_DELIVERY
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
 }
 
 // ==================== MODELS ====================
@@ -139,9 +146,12 @@ model Address {
 model Order {
   id              String      @id @default(cuid())
   orderNumber     String      @unique
+  trackingCode    String      @unique @default(cuid())
   status          OrderStatus @default(PENDING)
+  fabricationNote String?
   subtotal        Decimal     @db.Decimal(10, 2)
   shipping        Decimal     @db.Decimal(10, 2)
+  discount        Decimal     @default(0) @db.Decimal(10, 2)
   total           Decimal     @db.Decimal(10, 2)
   paymentMethod   String
   stripeSessionId String?
@@ -155,19 +165,24 @@ model Order {
   addressId String
   address   Address @relation(fields: [addressId], references: [id])
 
+  couponId String?
+  coupon   Coupon? @relation(fields: [couponId], references: [id])
+
   items OrderItem[]
 
   @@index([userId])
   @@index([orderNumber])
+  @@index([trackingCode])
   @@map("orders")
 }
 
 model OrderItem {
-  id       String  @id @default(cuid())
-  name     String
-  price    Decimal @db.Decimal(10, 2)
-  quantity Int
-  total    Decimal @db.Decimal(10, 2)
+  id          String  @id @default(cuid())
+  name        String
+  price       Decimal @db.Decimal(10, 2)
+  quantity    Int
+  total       Decimal @db.Decimal(10, 2)
+  customImage String?
 
   orderId String
   order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -177,4 +192,75 @@ model OrderItem {
 
   @@index([orderId])
   @@map("order_items")
+}
+
+// ==================== COUPONS ====================
+
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  description   String?
+  discountType  String    // "PERCENT" | "FIXED"
+  discountValue Decimal   @db.Decimal(10, 2)
+  minOrderValue Decimal?  @db.Decimal(10, 2)
+  maxUses       Int?
+  usedCount     Int       @default(0)
+  isActive      Boolean   @default(true)
+  startsAt      DateTime  @default(now())
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders Order[]
+
+  @@index([code])
+  @@map("coupons")
+}
+
+// ==================== AUDIT LOG ====================
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String
+  userEmail  String
+  action     AuditAction
+  resource   String      // "product" | "order" | "user" | "coupon"
+  resourceId String
+  before     Json?
+  after      Json?
+  createdAt  DateTime    @default(now())
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@map("audit_logs")
+}
+
+// ==================== SITE SETTINGS ====================
+
+model SiteSettings {
+  id          String   @id @default("singleton")
+  storeName   String   @default("BasicTechShop")
+  logoUrl     String?
+  bannerUrl   String?
+  bannerTitle String?
+  bannerText  String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// ==================== EVENTS ====================
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String?
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("events")
 }

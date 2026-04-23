@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { sendOrderConfirmationEmail } from "@/lib/email"
 
 export async function GET() {
   try {
@@ -30,6 +31,7 @@ export async function GET() {
     const transformedOrders = orders.map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber,
+      trackingCode: order.trackingCode,
       status: order.status.toLowerCase(),
       subtotal: Number(order.subtotal),
       shipping: Number(order.shipping),
@@ -42,10 +44,11 @@ export async function GET() {
       items: order.items.map((item) => ({
         productId: item.productId,
         name: item.name,
-        brand: item.product.id, // Would need to join with brand
+        brand: item.product.id,
         price: Number(item.price),
         quantity: item.quantity,
         image: item.product.images[0] || "",
+        customImage: item.customImage || null,
       })),
     }))
 
@@ -61,6 +64,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "No autorizado" },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
 
     // Generate order number
@@ -70,21 +82,29 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        status: "PENDING",
+        status: "CONFIRMED",
         subtotal: body.subtotal,
         shipping: body.shipping,
         total: body.total,
-        paymentMethod: body.paymentMethod,
+        paymentMethod: body.paymentMethod || "CARD",
+        stripeSessionId: body.transactionId,
         notes: body.notes,
-        userId: body.userId,
+        userId: session.user.id,
         addressId: body.addressId,
         items: {
-          create: body.items.map((item: { productId: string; name: string; price: number; quantity: number }) => ({
+          create: (body.items || []).map((item: {
+            productId: string
+            name: string
+            price: number
+            quantity: number
+            customImage?: string
+          }) => ({
             name: item.name,
             price: item.price,
             quantity: item.quantity,
             total: item.price * item.quantity,
             productId: item.productId,
+            customImage: item.customImage || null,
           })),
         },
       },
@@ -94,10 +114,34 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Send confirmation email — fetch user email separately (not in order include)
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true, name: true },
+    })
+
+    if (userRecord) {
+      await sendOrderConfirmationEmail({
+        to: userRecord.email,
+        customerName: userRecord.name,
+        orderNumber: order.orderNumber,
+        orderTotal: Number(order.total),
+        orderItems: (body.items || []).map((item: {
+          name: string; price: number; quantity: number
+        }) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        paymentMethod: body.paymentMethod || "Webpay",
+      })
+    }
+
     return NextResponse.json(
       {
         id: order.id,
         orderNumber: order.orderNumber,
+        trackingCode: order.trackingCode,
         status: order.status,
         total: Number(order.total),
       },

@@ -104,7 +104,7 @@ export default function AdminSettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pen">Soles (S/)</SelectItem>
+                      <SelectItem value="pen">Soles ($)</SelectItem>
                       <SelectItem value="usd">Dolares ($)</SelectItem>
                       <SelectItem value="eur">Euros (EUR)</SelectItem>
                     </SelectContent>
@@ -128,9 +128,9 @@ export default function AdminSettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Mostrar productos agotados</p>
-                  <p className="text-sm text-muted-foreground">
-                    Los productos sin stock se mostraran como "Agotado"
-                  </p>
+                   <p className="text-sm text-muted-foreground">
+                     Los productos sin stock se mostrarán como &quot;Agotado&quot;
+                   </p>
                 </div>
                 <Switch defaultChecked />
               </div>
@@ -171,7 +171,7 @@ export default function AdminSettingsPage() {
                   <Input type="number" defaultValue="15" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Envio gratis desde (S/)</Label>
+                  <Label>Envio gratis desde ($)</Label>
                   <Input type="number" defaultValue="200" />
                 </div>
               </div>
