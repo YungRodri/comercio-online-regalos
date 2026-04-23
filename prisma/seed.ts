@@ -12,14 +12,15 @@ async function main() {
 
   // Safety guard: never wipe data in production
   if (process.env.NODE_ENV === "production") {
+    const CONFIRM_PHRASE = "I_KNOW_THIS_WILL_DELETE_ALL_DATA"
     console.error(
       "❌  Seed aborted: running in production is not allowed.\n" +
-      "   Set NODE_ENV=development or run with FORCE_SEED=true to override."
+      `   Set FORCE_SEED=${CONFIRM_PHRASE} to override (DANGER: all data will be deleted).`
     )
-    if (process.env.FORCE_SEED !== "true") {
+    if (process.env.FORCE_SEED !== CONFIRM_PHRASE) {
       process.exit(1)
     }
-    console.warn("⚠️  FORCE_SEED=true detected — proceeding with production seed.")
+    console.warn("⚠️  FORCE_SEED override confirmed — proceeding with production seed. ALL DATA WILL BE DELETED.")
   }
 
   // Clear existing data
