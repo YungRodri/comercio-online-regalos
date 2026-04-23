@@ -35,6 +35,8 @@ Copia `.env.example` a `.env.local` (desarrollo) o configura en tu plataforma (p
 | `STRIPE_WEBHOOK_SECRET` | Ver Paso 4 |
 | `WEBPAY_COMMERCE_CODE` | Credenciales de Transbank (ver Paso 5) |
 | `WEBPAY_API_KEY` | Credenciales de Transbank |
+| `RESEND_API_KEY` | [Resend → API Keys](https://resend.com/api-keys) (opcional — emails se omiten si no está configurado) |
+| `RESEND_FROM_EMAIL` | Dirección remitente verificada en Resend |
 
 ---
 
@@ -70,6 +72,22 @@ Usa las credenciales de prueba ya configuradas en `.env.example`.
 1. Registrate en [Transbank Developers](https://www.transbankdevelopers.cl).
 2. Completa el proceso de certificación para obtener credenciales de producción.
 3. Reemplaza `WEBPAY_COMMERCE_CODE` y `WEBPAY_API_KEY` con los valores reales.
+
+---
+
+## Paso 6 — Email transaccional (Resend) — *Opcional*
+
+Los emails de confirmación de pedido se envían automáticamente cuando se crea una orden.
+Si `RESEND_API_KEY` no está configurado, los emails se omiten silenciosamente.
+
+1. Crea una cuenta en [resend.com](https://resend.com).
+2. Verifica tu dominio (DNS) en [Resend → Domains](https://resend.com/domains).
+3. Genera una API key en [Resend → API Keys](https://resend.com/api-keys).
+4. Configura en tu plataforma:
+   - `RESEND_API_KEY=re_xxxxx`
+   - `RESEND_FROM_EMAIL=noreply@tudominio.com`
+
+> ℹ️ En desarrollo puedes usar `onboarding@resend.dev` como remitente de prueba (solo envía a tu cuenta de Resend).
 
 ---
 

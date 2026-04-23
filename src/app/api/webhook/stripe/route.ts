@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
+import { sendOrderConfirmationEmail } from "@/lib/email"
 import Stripe from "stripe"
 
 export async function POST(request: NextRequest) {
@@ -137,6 +138,28 @@ export async function POST(request: NextRequest) {
         }
 
         console.log("Order created:", order.orderNumber)
+
+        // Send confirmation email (non-blocking — errors are caught inside)
+        await sendOrderConfirmationEmail({
+          to: user.email,
+          customerName: user.name,
+          orderNumber: order.orderNumber,
+          orderTotal: total,
+          orderItems: items.map((item: { id: string; qty: number }) => {
+            const product = products.find((p) => p.id === item.id)
+            return {
+              name: product?.name || "Producto",
+              quantity: item.qty,
+              price: Number(product?.price) || 0,
+            }
+          }),
+          shippingAddress: customerAddress
+            ? [customerAddress.line1, customerAddress.city, customerAddress.state]
+                .filter(Boolean)
+                .join(", ")
+            : undefined,
+          paymentMethod: "Stripe",
+        })
       } catch (error) {
         console.error("Error processing order:", error)
       }

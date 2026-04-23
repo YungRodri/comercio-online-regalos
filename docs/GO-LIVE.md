@@ -38,7 +38,7 @@ Este archivo persiste entre sesiones. Marcá cada ítem cuando esté hecho.
 - [x] Perfil → `/profile/settings` con formularios funcionales (editar nombre/teléfono + cambiar contraseña)
 - [x] API `PATCH /api/users/me` para actualizar datos del usuario autenticado
 - [x] Página de administración de productos: edición funcional (`/admin/products/[id]/edit`)
-- [ ] Notificación de email después de crear una orden (Resend / SendGrid)
+- [x] Notificación de email después de crear una orden — `src/lib/email.ts` con Resend (graceful fallback si `RESEND_API_KEY` no está configurado)
 
 ---
 
@@ -88,6 +88,12 @@ Este archivo persiste entre sesiones. Marcá cada ítem cuando esté hecho.
 - [x] `/profile/settings` — formularios funcionales (perfil + contraseña)
 - [x] `PATCH /api/users/me` endpoint
 
-### Sesión 3 (próxima)
-- [ ] Email notifications (Resend)
-- [ ] Deploy a Vercel staging + QA completo
+### Sesión 3 (esta sesión)
+- [x] Email notifications (Resend) — `src/lib/email.ts`
+- [x] Conectar email al webhook de Stripe
+- [x] Conectar email al `POST /api/orders` (Webpay)
+- [x] Agregar `RESEND_API_KEY` y `RESEND_FROM_EMAIL` al `.env.example`
+- [x] Documentar Resend en `docs/DEPLOY.md`
+
+### ✅ Todos los ítems de código completados
+Los ítems restantes del GO-LIVE requieren configuración manual de producción (hosting, BD, dominio).
