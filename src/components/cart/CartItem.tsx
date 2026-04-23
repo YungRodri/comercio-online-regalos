@@ -8,19 +8,19 @@ import { CartItem as CartItemType } from "@/types"
 
 interface CartItemProps {
   item: CartItemType
-  onUpdateQuantity: (productId: string, quantity: number) => void
-  onRemove: (productId: string) => void
+  onUpdateQuantity: (cartItemId: string, quantity: number) => void
+  onRemove: (cartItemId: string) => void
 }
 
 export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
-  const { product, quantity } = item
+  const { product, quantity, customImage, cartItemId } = item
 
   return (
     <div className="flex gap-4 py-4">
       {/* Image */}
       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
         <Image
-          src={product.images[0]}
+          src={customImage || product.images[0]}
           alt={product.name}
           fill
           className="object-cover"
@@ -44,7 +44,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-destructive"
-            onClick={() => onRemove(product.id)}
+            onClick={() => onRemove(cartItemId)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -57,7 +57,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
               variant="ghost"
               size="icon"
               className="h-8 w-8 rounded-r-none"
-              onClick={() => onUpdateQuantity(product.id, quantity - 1)}
+              onClick={() => onUpdateQuantity(cartItemId, quantity - 1)}
               disabled={quantity <= 1}
             >
               <Minus className="h-3 w-3" />
@@ -67,7 +67,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
               variant="ghost"
               size="icon"
               className="h-8 w-8 rounded-l-none"
-              onClick={() => onUpdateQuantity(product.id, quantity + 1)}
+              onClick={() => onUpdateQuantity(cartItemId, quantity + 1)}
               disabled={quantity >= product.stock}
             >
               <Plus className="h-3 w-3" />
@@ -77,11 +77,11 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           {/* Price */}
           <div className="text-right">
             <p className="font-semibold text-primary">
-              S/ {(product.price * quantity).toFixed(2)}
+              $ {(product.price * quantity).toLocaleString('es-CL')}
             </p>
             {quantity > 1 && (
               <p className="text-xs text-muted-foreground">
-                S/ {product.price.toFixed(2)} c/u
+                $ {product.price.toLocaleString('es-CL')} c/u
               </p>
             )}
           </div>

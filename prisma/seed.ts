@@ -10,6 +10,19 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   console.log("Seeding database...")
 
+  // Safety guard: never wipe data in production
+  if (process.env.NODE_ENV === "production") {
+    const CONFIRM_PHRASE = "I_KNOW_THIS_WILL_DELETE_ALL_DATA"
+    console.error(
+      "❌  Seed aborted: running in production is not allowed.\n" +
+      `   Set FORCE_SEED=${CONFIRM_PHRASE} to override (DANGER: all data will be deleted).`
+    )
+    if (process.env.FORCE_SEED !== CONFIRM_PHRASE) {
+      process.exit(1)
+    }
+    console.warn("⚠️  FORCE_SEED override confirmed — proceeding with production seed. ALL DATA WILL BE DELETED.")
+  }
+
   // Clear existing data
   await prisma.orderItem.deleteMany()
   await prisma.order.deleteMany()
@@ -21,13 +34,11 @@ async function main() {
 
   // Create Categories
   const categoriesData = [
-    { name: "Computadoras", slug: "computadoras", icon: "Monitor" },
-    { name: "Monitores", slug: "monitores", icon: "Monitor" },
-    { name: "Teclados", slug: "teclados", icon: "Keyboard" },
-    { name: "Mouse", slug: "mouse", icon: "Mouse" },
-    { name: "Audifonos", slug: "audifonos", icon: "Headphones" },
-    { name: "Almacenamiento", slug: "almacenamiento", icon: "HardDrive" },
-    { name: "Componentes", slug: "componentes", icon: "Cpu" },
+    { name: "Boxes", slug: "boxes", icon: "Package" },
+    { name: "Papelería", slug: "papeleria", icon: "Sparkles" },
+    { name: "Desayunos", slug: "desayunos", icon: "Coffee" },
+    { name: "Joyería", slug: "joyeria", icon: "Diamond" },
+    { name: "Tazones", slug: "tazones", icon: "Heart" },
   ]
 
   const categories: Record<string, string> = {}
@@ -39,18 +50,8 @@ async function main() {
 
   // Create Brands
   const brandsData = [
-    { name: "ASUS", slug: "asus" },
-    { name: "MSI", slug: "msi" },
-    { name: "Corsair", slug: "corsair" },
-    { name: "Logitech", slug: "logitech" },
-    { name: "Razer", slug: "razer" },
-    { name: "HyperX", slug: "hyperx" },
-    { name: "Kingston", slug: "kingston" },
-    { name: "Samsung", slug: "samsung" },
-    { name: "LG", slug: "lg" },
-    { name: "Dell", slug: "dell" },
-    { name: "NVIDIA", slug: "nvidia" },
-    { name: "AMD", slug: "amd" },
+    { name: "Cyc Regalos", slug: "cyc-regalos" },
+    { name: "Artesanal", slug: "artesanal" },
   ]
 
   const brands: Record<string, string> = {}
@@ -63,228 +64,72 @@ async function main() {
   // Create Products
   const productsData = [
     {
-      name: "ROG Strix GeForce RTX 4080",
-      slug: "rog-strix-rtx-4080",
-      brand: "ASUS",
-      category: "componentes",
-      price: 1299.99,
-      comparePrice: 1499.99,
-      images: [
-        "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500",
-        "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=500",
-      ],
-      description: "Tarjeta grafica de alto rendimiento con iluminacion RGB y refrigeracion avanzada",
-      specs: {
-        Memoria: "16GB GDDR6X",
-        "Nucleos CUDA": "9728",
-        "Reloj Base": "2205 MHz",
-        TDP: "320W",
-      },
-      stock: 5,
+      name: "Box Día de la Madre Premium",
+      slug: "box-dia-madre-premium",
+      brand: "Cyc Regalos",
+      category: "boxes",
+      price: 45000,
+      comparePrice: 55000,
+      images: ["https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500"],
+      description: "Nuestra caja más especial para consentir a mamá con detalles únicos y chocolates artesanales.",
+      specs: { Contenido: "Taza, Chocolates, Suculenta, Tarjeta", Presentación: "Caja de madera grabada" },
+      stock: 20,
       isNew: true,
       isFeatured: true,
     },
     {
-      name: "G Pro X Superlight 2",
-      slug: "g-pro-x-superlight-2",
-      brand: "Logitech",
-      category: "mouse",
-      price: 159.99,
-      images: ["https://images.unsplash.com/photo-1527814050087-3793815479db?w=500"],
-      description: "Mouse gaming ultraligero con sensor HERO 2 de 32K DPI",
-      specs: {
-        Peso: "60g",
-        Sensor: "HERO 2",
-        DPI: "32,000",
-        Bateria: "95 horas",
-      },
+      name: "Agenda Personalizada",
+      slug: "agenda-personalizada",
+      brand: "Artesanal",
+      category: "papeleria",
+      price: 25000,
+      images: ["https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=500"],
+      description: "Agenda de tapa dura con nombre grabado y secciones especiales para toda mujer.",
+      specs: { Hojas: "100 hojas de 106g", Tamaño: "A5", Tapa: "Dura laminada" },
+      stock: 50,
+      isNew: false,
+      isFeatured: true,
+    },
+    {
+      name: "Collar Árbol de la Vida",
+      slug: "collar-arbol",
+      brand: "Cyc Regalos",
+      category: "joyeria",
+      price: 35000,
+      comparePrice: 40000,
+      images: ["https://images.unsplash.com/photo-1515562141207-7a8f73fce811?w=500"],
+      description: "Hermoso collar que representa a la familia, bañado en plata 925.",
+      specs: { Material: "Plata 925", Cadena: "45cm", Dije: "Árbol con circones" },
       stock: 15,
       isNew: true,
       isFeatured: true,
     },
     {
-      name: "K100 RGB Mechanical",
-      slug: "k100-rgb-mechanical",
-      brand: "Corsair",
-      category: "teclados",
-      price: 229.99,
-      comparePrice: 249.99,
-      images: ["https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=500"],
-      description: "Teclado mecanico premium con switches opticos y iCUE RGB",
-      specs: {
-        Switches: "OPX Optical",
-        Retroiluminacion: "RGB por tecla",
-        Conexion: "USB-C",
-        "Macro Keys": "6",
-      },
-      stock: 8,
-      isNew: false,
-      isFeatured: true,
-    },
-    {
-      name: "Odyssey G9 49\"",
-      slug: "odyssey-g9-49",
-      brand: "Samsung",
-      category: "monitores",
-      price: 1299.99,
-      comparePrice: 1499.99,
-      images: ["https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500"],
-      description: "Monitor gaming curvo ultrawide con 240Hz y 1ms de respuesta",
-      specs: {
-        Resolucion: "5120x1440",
-        Panel: "VA Curvo 1000R",
-        "Tasa Refresco": "240Hz",
-        HDR: "HDR1000",
-      },
-      stock: 3,
-      isNew: false,
-      isFeatured: true,
-    },
-    {
-      name: "Cloud III Wireless",
-      slug: "cloud-iii-wireless",
-      brand: "HyperX",
-      category: "audifonos",
-      price: 169.99,
-      images: ["https://images.unsplash.com/photo-1599669454699-248893623440?w=500"],
-      description: "Audifonos gaming inalambricos con sonido espacial DTS:X",
-      specs: {
-        Driver: "53mm",
-        Frecuencia: "10Hz-21kHz",
-        Bateria: "120 horas",
-        Microfono: "Bidireccional con cancelacion de ruido",
-      },
-      stock: 12,
-      isNew: true,
-      isFeatured: false,
-    },
-    {
-      name: "970 EVO Plus 2TB",
-      slug: "970-evo-plus-2tb",
-      brand: "Samsung",
-      category: "almacenamiento",
-      price: 189.99,
-      images: ["https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=500"],
-      description: "SSD NVMe M.2 de alta velocidad para gaming y productividad",
-      specs: {
-        Capacidad: "2TB",
-        Lectura: "3,500 MB/s",
-        Escritura: "3,300 MB/s",
-        Interfaz: "PCIe Gen 3.0 x4",
-      },
-      stock: 25,
-      isNew: false,
-      isFeatured: false,
-    },
-    {
-      name: "DeathAdder V3 Pro",
-      slug: "deathadder-v3-pro",
-      brand: "Razer",
-      category: "mouse",
-      price: 149.99,
-      images: ["https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=500"],
-      description: "Mouse ergonomico gaming con sensor Focus Pro 30K",
-      specs: {
-        Peso: "63g",
-        Sensor: "Focus Pro 30K",
-        DPI: "30,000",
-        Bateria: "90 horas",
-      },
-      stock: 18,
-      isNew: true,
-      isFeatured: true,
-    },
-    {
-      name: "MAG B650 TOMAHAWK",
-      slug: "mag-b650-tomahawk",
-      brand: "MSI",
-      category: "componentes",
-      price: 259.99,
-      images: ["https://images.unsplash.com/photo-1518770660439-4636190af475?w=500"],
-      description: "Placa base ATX para AMD Ryzen 7000 con PCIe 5.0",
-      specs: {
-        Socket: "AM5",
-        Chipset: "AMD B650",
-        RAM: "DDR5 hasta 128GB",
-        "M.2 Slots": "2x PCIe 4.0",
-      },
-      stock: 10,
-      isNew: false,
-      isFeatured: false,
-    },
-    {
-      name: "Ryzen 9 7950X",
-      slug: "ryzen-9-7950x",
-      brand: "AMD",
-      category: "componentes",
-      price: 549.99,
-      comparePrice: 699.99,
-      images: ["https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=500"],
-      description: "Procesador de 16 nucleos y 32 hilos para rendimiento extremo",
-      specs: {
-        Nucleos: "16",
-        Hilos: "32",
-        "Reloj Base": "4.5 GHz",
-        "Reloj Boost": "5.7 GHz",
-      },
-      stock: 7,
-      isNew: false,
-      isFeatured: true,
-    },
-    {
-      name: "UltraGear 27GP950",
-      slug: "ultragear-27gp950",
-      brand: "LG",
-      category: "monitores",
-      price: 799.99,
-      images: ["https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500"],
-      description: "Monitor 4K Nano IPS con 144Hz y HDMI 2.1",
-      specs: {
-        Resolucion: "3840x2160",
-        Panel: "Nano IPS",
-        "Tasa Refresco": "144Hz",
-        HDR: "HDR600",
-      },
-      stock: 6,
-      isNew: true,
-      isFeatured: false,
-    },
-    {
-      name: "Huntsman V2 TKL",
-      slug: "huntsman-v2-tkl",
-      brand: "Razer",
-      category: "teclados",
-      price: 159.99,
-      images: ["https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500"],
-      description: "Teclado TKL con switches opticos y foam dampening",
-      specs: {
-        Switches: "Razer Optical",
-        Formato: "TKL (87 teclas)",
-        Retroiluminacion: "Razer Chroma RGB",
-        Conexion: "USB-C desmontable",
-      },
-      stock: 14,
-      isNew: false,
-      isFeatured: false,
-    },
-    {
-      name: "FURY Beast 32GB DDR5",
-      slug: "fury-beast-32gb-ddr5",
-      brand: "Kingston",
-      category: "componentes",
-      price: 124.99,
-      images: ["https://images.unsplash.com/photo-1562976540-1502c2145186?w=500"],
-      description: "Kit de memoria DDR5 de alto rendimiento para gaming",
-      specs: {
-        Capacidad: "32GB (2x16GB)",
-        Velocidad: "5600 MT/s",
-        Latencia: "CL40",
-        Voltaje: "1.25V",
-      },
+      name: "Tazón Sublimado Mamá",
+      slug: "tazon-sublimado-mama",
+      brand: "Artesanal",
+      category: "tazones",
+      price: 15000,
+      images: ["https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500"],
+      description: "Tazón de alta calidad para empezar sus mañanas con el mensaje más lindo.",
+      specs: { Capacidad: "11oz", Material: "Cerámica", Cuidados: "Apto para microondas" },
       stock: 30,
-      isNew: true,
+      isNew: false,
       isFeatured: false,
     },
+    {
+      name: "Desayuno Sorpresa",
+      slug: "desayuno-sorpresa",
+      brand: "Cyc Regalos",
+      category: "desayunos",
+      price: 60000,
+      images: ["https://images.unsplash.com/photo-1550050853-462deff16b9b?w=500"],
+      description: "Un despertar inolvidable con todo lo que a ella más le gusta.",
+      specs: { Incluye: "Jugo, Sándwich, Muffin, Fruta, Globo" },
+      stock: 10,
+      isNew: true,
+      isFeatured: true,
+    }
   ]
 
   for (const product of productsData) {

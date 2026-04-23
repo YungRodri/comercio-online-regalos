@@ -1,60 +1,40 @@
 import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export const runtime = "nodejs"
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const session = await auth()
 
-// Routes that require authentication
-const protectedRoutes = ["/profile", "/checkout"]
+  // ── Rutas que requieren rol ADMIN ──────────────────────────
+  if (pathname.startsWith("/admin")) {
+    if (!session?.user) {
+      const loginUrl = new URL("/login", request.url)
+      loginUrl.searchParams.set("callbackUrl", pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    if (session.user.role !== "ADMIN" && session.user.role !== "WORKER") {
+      return NextResponse.redirect(new URL("/", request.url))
+    }
+  }
 
-// Routes only for admin users
-const adminRoutes = ["/admin"]
+  // ── Rutas que requieren autenticación ─────────────────────
+  const protectedPaths = ["/profile", "/checkout"]
+  const isProtected = protectedPaths.some((p) => pathname.startsWith(p))
 
-// Routes only for guests (not logged in)
-const guestRoutes = ["/login", "/register"]
-
-export default auth((req) => {
-  const { nextUrl } = req
-  const isLoggedIn = !!req.auth
-  const isAdmin = req.auth?.user?.role === "ADMIN"
-
-  // Check if the current path matches any protected route
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    nextUrl.pathname.startsWith(route)
-  )
-
-  // Check if the current path matches any admin route
-  const isAdminRoute = adminRoutes.some((route) =>
-    nextUrl.pathname.startsWith(route)
-  )
-
-  // Check if the current path matches any guest route
-  const isGuestRoute = guestRoutes.some((route) =>
-    nextUrl.pathname.startsWith(route)
-  )
-
-  // Redirect to login if accessing protected route without auth
-  if (isProtectedRoute && !isLoggedIn) {
-    const loginUrl = new URL("/login", nextUrl)
-    loginUrl.searchParams.set("callbackUrl", nextUrl.pathname)
+  if (isProtected && !session?.user) {
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.searchParams.set("callbackUrl", pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirect to home if accessing admin route without admin role
-  if (isAdminRoute && !isAdmin) {
-    return NextResponse.redirect(new URL("/", nextUrl))
-  }
-
-  // Redirect to home if accessing guest route while logged in
-  if (isGuestRoute && isLoggedIn) {
-    return NextResponse.redirect(new URL("/", nextUrl))
-  }
-
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: [
-    // Match all routes except static files and API routes
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/admin/:path*",
+    "/profile/:path*",
+    "/checkout/:path*",
   ],
 }

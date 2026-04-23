@@ -115,11 +115,11 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Price */}
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-lg font-bold text-primary">
-            S/ {product.price.toFixed(2)}
+            $ {product.price.toLocaleString('es-CL')}
           </span>
           {hasDiscount && (
             <span className="text-sm text-muted-foreground line-through">
-              S/ {product.originalPrice!.toFixed(2)}
+              $ {product.originalPrice!.toLocaleString('es-CL')}
             </span>
           )}
         </div>
