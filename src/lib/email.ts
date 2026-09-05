@@ -1,7 +1,5 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL
   ? process.env.RESEND_FROM_EMAIL
   : "onboarding@resend.dev" // safe Resend sandbox sender for testing only
@@ -170,7 +168,8 @@ function orderConfirmationHtml(payload: OrderConfirmationPayload): string {
 export async function sendOrderConfirmationEmail(
   payload: OrderConfirmationPayload
 ): Promise<void> {
-  if (!process.env.RESEND_API_KEY) {
+  const resendApiKey = process.env.RESEND_API_KEY
+  if (!resendApiKey) {
     console.warn(
       "[email] RESEND_API_KEY not set — skipping order confirmation email"
     )
@@ -178,6 +177,7 @@ export async function sendOrderConfirmationEmail(
   }
 
   try {
+    const resend = new Resend(resendApiKey)
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: payload.to,
