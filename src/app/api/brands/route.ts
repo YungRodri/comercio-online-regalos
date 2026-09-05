@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { transformBrand } from "@/lib/transformers"
+import { requireAdmin } from "@/lib/api-auth"
+import { z } from "zod"
+
+const createBrandSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9-]+$/),
+  logo: z.string().trim().max(500).nullable().optional(),
+})
 
 export async function GET() {
   try {
@@ -24,14 +32,21 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
-    const body = await request.json()
+    const parsed = createBrandSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Payload inválido" }, { status: 400 })
+    }
+    const body = parsed.data
 
     const brand = await prisma.brand.create({
       data: {
         name: body.name,
         slug: body.slug,
-        logo: body.logo,
+        logo: body.logo ?? null,
       },
       include: {
         _count: {

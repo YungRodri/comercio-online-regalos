@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { transformCategory } from "@/lib/transformers"
+import { requireAdmin } from "@/lib/api-auth"
+import { z } from "zod"
+
+const createCategorySchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9-]+$/),
+  icon: z.string().trim().max(255).nullable().optional(),
+})
 
 export async function GET() {
   try {
@@ -24,14 +32,21 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
-    const body = await request.json()
+    const parsed = createCategorySchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Payload inválido" }, { status: 400 })
+    }
+    const body = parsed.data
 
     const category = await prisma.category.create({
       data: {
         name: body.name,
         slug: body.slug,
-        icon: body.icon,
+        icon: body.icon ?? null,
       },
       include: {
         _count: {
