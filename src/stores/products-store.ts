@@ -22,7 +22,7 @@ interface ProductsState {
 const defaultFilters: FilterState = {
   categories: [],
   brands: [],
-  priceRange: [0, 10000],
+  priceRange: [0, 100000],
   sortBy: "newest",
 }
 
@@ -50,7 +50,7 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
       if (filters.priceRange[0] > 0) {
         params.set("minPrice", filters.priceRange[0].toString())
       }
-      if (filters.priceRange[1] < 10000) {
+      if (filters.priceRange[1] < 100000) {
         params.set("maxPrice", filters.priceRange[1].toString())
       }
       if (filters.sortBy) {

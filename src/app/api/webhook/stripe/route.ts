@@ -36,6 +36,17 @@ export async function POST(request: NextRequest) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session
 
+      // Idempotency check: prevent duplicate orders if Stripe re-delivers the webhook
+      const existingOrder = await prisma.order.findFirst({
+        where: { stripeSessionId: session.id },
+      })
+      if (existingOrder) {
+        if (process.env.NODE_ENV !== "production") {
+          console.log(`[Stripe Webhook] Order already processed for session ${session.id}: ${existingOrder.orderNumber}`)
+        }
+        return NextResponse.json({ received: true, status: "already_processed" })
+      }
+
       // Get user ID from metadata (set during checkout)
       const userId = session.metadata?.userId
       // Empty string is the sentinel for "no coupon" (Stripe metadata requires strings)
@@ -95,7 +106,7 @@ export async function POST(request: NextRequest) {
 
         // Generate human-friendly order number
         const orderCount = await prisma.order.count()
-        const orderNumber = `BT-${new Date().getFullYear()}-${String(orderCount + 1).padStart(4, "0")}`
+        const orderNumber = `REG-${new Date().getFullYear()}-${String(orderCount + 1).padStart(4, "0")}`
 
         // Create order
         const order = await prisma.order.create({
@@ -146,7 +157,9 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        console.log("Order created:", order.orderNumber)
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Order created:", order.orderNumber)
+        }
 
         // Send confirmation email (non-blocking — errors are caught inside)
         await sendOrderConfirmationEmail({
@@ -178,12 +191,16 @@ export async function POST(request: NextRequest) {
 
     case "payment_intent.payment_failed": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
-      console.log("Payment failed:", paymentIntent.id)
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Payment failed:", paymentIntent.id)
+      }
       break
     }
 
     default:
-      console.log(`Unhandled event type: ${event.type}`)
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`Unhandled event type: ${event.type}`)
+      }
   }
 
   return NextResponse.json({ received: true })

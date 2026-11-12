@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ChevronDown, ChevronUp, Search } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { brands } from "@/data/mock-products"
+import { useProductsStore } from "@/stores/products-store"
 
 interface BrandFilterProps {
   selectedBrands: string[]
@@ -15,6 +15,14 @@ interface BrandFilterProps {
 export function BrandFilter({ selectedBrands, onBrandsChange }: BrandFilterProps) {
   const [isOpen, setIsOpen] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const brands = useProductsStore((state) => state.brands)
+  const fetchBrands = useProductsStore((state) => state.fetchBrands)
+
+  useEffect(() => {
+    if (brands.length === 0) {
+      fetchBrands()
+    }
+  }, [brands.length, fetchBrands])
 
   const filteredBrands = brands.filter((brand) =>
     brand.name.toLowerCase().includes(searchQuery.toLowerCase())

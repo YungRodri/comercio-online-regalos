@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Gift, Sparkles } from "lucide-react";
-import Image from "next/image";
 
 export default function NosotrosPage() {
     return (
@@ -13,7 +12,7 @@ export default function NosotrosPage() {
                     </h1>
                     <div className="flex items-center justify-center gap-2 text-primary">
                         <Heart className="h-6 w-6" />
-                        <p className="text-xl font-medium">C&C; Regalos</p>
+                        <p className="text-xl font-medium">C&C Regalos</p>
                         <Heart className="h-6 w-6" />
                     </div>
                 </div>
@@ -22,8 +21,8 @@ export default function NosotrosPage() {
                 <Card className="mb-8">
                     <CardContent className="p-8 md:p-12 space-y-6 text-neutral-700 leading-relaxed">
                         <p className="text-lg italic text-center text-foreground font-medium">
-                            "Un regalo no es solo un objeto... es una forma de decir te pienso, te
-                            valoro, estoy aquí para ti."
+                            &ldquo;Un regalo no es solo un objeto... es una forma de decir te pienso, te
+                            valoro, estoy aquí para ti.&rdquo;
                         </p>
 
                         <p>
@@ -79,7 +78,7 @@ export default function NosotrosPage() {
                                 Gracias por confiar en nuestro trabajo y por elegir regalar con intención.
                             </p>
                             <p className="text-primary font-semibold text-xl">
-                                Bienvenidos a C&C; Regalos
+                                Bienvenidos a C&C Regalos
                             </p>
                         </div>
                     </CardContent>

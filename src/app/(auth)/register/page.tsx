@@ -1,5 +1,7 @@
+"use client"
+
 import Link from "next/link"
-import { Cpu } from "lucide-react"
+import { Gift } from "lucide-react"
 import { RegisterForm } from "@/components/auth/RegisterForm"
 
 export default function RegisterPage() {
@@ -8,9 +10,9 @@ export default function RegisterPage() {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <Link href="/" className="flex items-center gap-2 self-center font-medium">
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-            <Cpu className="size-4" />
+            <Gift className="size-4" />
           </div>
-          BasicTech
+          Cyc Regalos
         </Link>
         <RegisterForm />
       </div>

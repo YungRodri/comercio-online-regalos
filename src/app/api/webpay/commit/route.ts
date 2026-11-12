@@ -24,29 +24,54 @@ function getSuccessUrl(request: NextRequest, trackingCode: string, orderNumber: 
 
 async function extractToken(request: NextRequest) {
   const queryToken = request.nextUrl.searchParams.get("token_ws")
-  if (queryToken) return { token: queryToken, cancelled: false }
+  const queryTbkToken = request.nextUrl.searchParams.get("TBK_TOKEN")
+  const queryBuyOrder = request.nextUrl.searchParams.get("TBK_ORDEN_COMPRA")
+
+  if (queryToken) return { token: queryToken, cancelled: false, buyOrder: null }
 
   // TBK_TOKEN is set when user cancels on Webpay's page
-  const queryTbkToken = request.nextUrl.searchParams.get("TBK_TOKEN")
-  if (queryTbkToken) return { token: null, cancelled: true }
+  if (queryTbkToken) return { token: null, cancelled: true, buyOrder: queryBuyOrder }
 
   try {
     const formData = await request.formData()
     const tbkToken = formData.get("TBK_TOKEN")
-    if (tbkToken) return { token: null, cancelled: true }
+    const formBuyOrder = formData.get("TBK_ORDEN_COMPRA")
+    if (tbkToken) {
+      return {
+        token: null,
+        cancelled: true,
+        buyOrder: typeof formBuyOrder === "string" ? formBuyOrder : null,
+      }
+    }
 
     const token = formData.get("token_ws")
-    return { token: typeof token === "string" ? token : null, cancelled: false }
+    return {
+      token: typeof token === "string" ? token : null,
+      cancelled: false,
+      buyOrder: null,
+    }
   } catch (error) {
-    console.error("Failed to parse Webpay form data:", error)
-    return { token: null, cancelled: false }
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Failed to parse Webpay form data:", error)
+    }
+    return { token: null, cancelled: false, buyOrder: null }
   }
 }
 
 async function handleCommit(request: NextRequest) {
-  const { token, cancelled } = await extractToken(request)
+  const { token, cancelled, buyOrder } = await extractToken(request)
 
   if (cancelled) {
+    if (buyOrder) {
+      try {
+        await prisma.order.updateMany({
+          where: { stripeSessionId: buyOrder, status: "PENDING" },
+          data: { status: "CANCELLED" },
+        })
+      } catch (err) {
+        console.error("Failed to mark cancelled order in DB:", err)
+      }
+    }
     return NextResponse.redirect(getCancelUrl(request, "user_cancelled"))
   }
 

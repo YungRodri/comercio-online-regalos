@@ -11,7 +11,7 @@ export async function GET() {
 
     if (!settings) {
       return NextResponse.json({
-        storeName: "BasicTechShop",
+        storeName: "Cyc Regalos",
         logoUrl: null,
         bannerUrl: null,
         bannerTitle: null,
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest) {
       },
       create: {
         id: "singleton",
-        storeName: body.storeName || "BasicTechShop",
+        storeName: body.storeName || "Cyc Regalos",
         logoUrl: body.logoUrl || null,
         bannerUrl: body.bannerUrl || null,
         bannerTitle: body.bannerTitle || null,

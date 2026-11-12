@@ -40,4 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# IDE and assistant local settings
+.claude/
+.claude
+.vscode/
+.idea/
+
 /src/generated/prisma

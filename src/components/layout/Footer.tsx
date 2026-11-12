@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 
@@ -39,7 +40,7 @@ export function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <div className="relative h-10 w-10">
-                <img src="/logo.png" alt="cycregalos logo" className="object-contain w-full h-full" />
+                <Image src="/logo.png" alt="cycregalos logo" width={40} height={40} className="object-contain w-full h-full" />
               </div>
               <span className="text-xl font-bold tracking-tight">cycregalos</span>
             </Link>

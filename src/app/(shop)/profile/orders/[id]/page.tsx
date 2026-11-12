@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronLeft, Package, MapPin, CreditCard, Loader2 } from "lucide-react"
+import { ChevronLeft, Package, MapPin, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

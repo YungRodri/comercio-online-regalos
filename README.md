@@ -1,131 +1,95 @@
-# BasicTechShop
+# Cyc Regalos — Comercio Online de Regalos con Intención
 
-E-commerce de productos de computación construido con Next.js 16, TypeScript y Tailwind CSS.
+Plataforma e-commerce para tienda de regalos personalizados (cajas gourmet, papelería fina, desayunos sorpresa, joyería y tazones personalizados) para el mercado chileno (moneda CLP), pasarelas Stripe y Webpay Plus (Transbank), construida con Next.js 16 (App Router), TypeScript estricto, Tailwind CSS v4, Prisma 7 (adapter-pg) y NextAuth v5.
 
-## Descripción
+## Características Principales
 
-BasicTechShop es una tienda online especializada en hardware, periféricos y componentes de computación. Incluye:
-
-- **Tienda pública**: Catálogo con filtros, carrito y checkout
-- **Panel de usuario**: Perfil, historial de pedidos y direcciones
-- **Panel de administración**: Gestión de productos, usuarios y pedidos
+- **Tienda Pública**: Catálogo dinámico con filtros por categoría, marca y rango de precio en CLP, carrito persistente con personalización de imagen y checkout multi-pasarela.
+- **Pasarelas de Pago Certificadas**:
+  - **Stripe**: Checkout seguro con soporte para moneda cero decimales (CLP), validación de webhook con firma criptográfica y control de idempotencia anti-duplicados.
+  - **Webpay Plus (Transbank)**: Flujo de redirección oficial, confirmación server-to-server (`/api/webpay/commit`), auto-cancelación de pedidos abortados y soporte para integración / producción.
+- **Seguridad Robusta**:
+  - Protección estricta contra manipulaciones de precio (*anti-price-tampering*): todos los totales se recalculan en backend desde la base de datos.
+  - Mitigación de IDOR en direcciones, pedidos y perfiles de usuario.
+  - Validación de magic bytes (JPEG/PNG/WebP) y rate limiting en subida de archivos (Cloudinary).
+  - Rate limiting por IP en rutas sensibles (validación de cupones, tracking de pedidos).
+  - Cabeceras HTTP de seguridad (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).
+- **Panel de Usuario**: Historial de pedidos con código de seguimiento, gestión de direcciones de envío y perfil de cuenta.
+- **Panel Administrativo (Roles ADMIN / WORKER)**:
+  - Dashboard con métricas de ventas y pedidos.
+  - Registro y gestión de transacciones reales vinculadas a pasarelas.
+  - Configuración de tienda, branding y catálogo de productos.
+- **Optimización SEO y Producción**:
+  - Sitemap dinámico (`/sitemap.xml`) y robots (`/robots.txt`).
+  - Metadatos Open Graph, Twitter cards e iconos.
+  - Prisma pool connection limits adaptados para serverless en Vercel.
 
 ## Stack Tecnológico
 
-| Tecnología | Uso |
-|------------|-----|
-| Next.js 16 | Framework (App Router) |
-| TypeScript | Lenguaje |
-| Tailwind CSS v4 | Estilos |
-| shadcn/ui | Componentes UI |
-| Prisma | ORM |
-| PostgreSQL | Base de datos |
-| Zustand | Estado global |
-| NextAuth.js | Autenticación |
+| Capa | Tecnología |
+|------|------------|
+| Framework | Next.js 16.1.1 (App Router) |
+| Lenguaje | TypeScript (strict mode) |
+| Estilos / UI | Tailwind CSS v4 + shadcn/ui |
+| Base de Datos & ORM | PostgreSQL + Prisma 7 (`@prisma/adapter-pg`) |
+| Autenticación | NextAuth.js v5 (beta.30) con roles `ADMIN`, `WORKER`, `USER` |
+| Pasarelas de Pago | Stripe (Chile / CLP) + Webpay Plus (Transbank) |
+| Almacenamiento Multimedia | Cloudinary |
+| Transaccional de Correo | Resend |
+| Gestión de Estado | Zustand |
+| Hosting Objetivo | Vercel |
 
-## Requisitos
+## Requisitos Previos
 
-- Node.js 18+
-- PostgreSQL (para backend)
-- Docker (opcional)
+- Node.js 20.19+, 22.12+ o 24.0+
+- PostgreSQL (Neon, Supabase, Railway o instancia local)
 
-## Instalación
+## Instalación y Configuración Local
 
 ```bash
-# Clonar repositorio
-git clone <repo-url>
-cd ecommerce-basictech
+# 1. Clonar repositorio
+git clone https://github.com/YungRodri/comercio-online-regalos.git
+cd comercio-online-regalos
 
-# Instalar dependencias
-npm install
+# 2. Instalar dependencias exactas
+npm ci
 
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales
+# 3. Configurar variables de entorno
+cp .env.example .env.local
+# Completa tus credenciales en .env.local
 
-# Iniciar base de datos con Docker (opcional)
-docker-compose up -d
-
-# Ejecutar migraciones
+# 4. Generar cliente Prisma y desplegar migraciones
+npx prisma generate
 npx prisma migrate dev
 
-# Sembrar datos iniciales
-npx prisma db seed
-```
+# 5. (Opcional) Sembrar catálogo inicial de regalos
+npm run db:seed
 
-## Desarrollo
-
-```bash
-# Servidor de desarrollo
+# 6. Iniciar servidor de desarrollo
 npm run dev
-
-# Abrir http://localhost:3000
 ```
 
-## Variables de entorno (pagos)
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-Para pagos en local/integración:
-
-```bash
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-STRIPE_SECRET_KEY=sk_test_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
-WEBPAY_COMMERCE_CODE=597055555532
-WEBPAY_API_KEY=579B464ADF5F7BC2DFA55EE8E4C8B28A
-WEBPAY_API_BASE_URL=https://webpay3gint.transbank.cl
-```
-
-Para producción de Webpay, usa tus credenciales reales de Transbank y:
+## Verificación de Calidad y Compilación de Producción
 
 ```bash
-WEBPAY_API_BASE_URL=https://webpay3g.transbank.cl
-```
-
-## Scripts Disponibles
-
-| Script | Descripción |
-|--------|-------------|
-| `npm run dev` | Inicia servidor de desarrollo |
-| `npm run build` | Genera build de producción |
-| `npm run start` | Inicia servidor de producción |
-| `npm run lint` | Ejecuta ESLint |
-| `npm run postinstall` | Genera cliente Prisma (se ejecuta automáticamente al instalar) |
-
-## Checklist mínima para despliegue
-
-```bash
-npm install
+# Linter
 npm run lint
+
+# Verificación de tipos TypeScript
+npx tsc --noEmit
+
+# Build de producción para Vercel
 npm run build
 ```
 
-## Estructura del Proyecto
+## Documentación del Proyecto
 
-```
-src/
-├── app/
-│   ├── (shop)/          # Rutas públicas (tienda)
-│   ├── (admin-panel)/   # Panel de administración
-│   ├── (auth)/          # Login y registro
-│   └── api/             # API Routes
-├── components/
-│   ├── ui/              # shadcn/ui
-│   ├── layout/          # Header, Footer, Nav
-│   ├── products/        # Componentes de productos
-│   ├── cart/            # Carrito
-│   └── admin/           # Panel admin
-├── data/                # Datos mock
-├── lib/                 # Utilidades
-├── stores/              # Zustand stores
-└── types/               # Tipos TypeScript
-```
-
-## Documentación
-
-- [PRD](./docs/PRD.md) - Documento de requisitos del producto
-- [Plan](./docs/PLAN.md) - Plan de implementación
-- [Modelo de datos](./docs/DATA-MODEL.md) - Schema de base de datos
-- [Páginas](./docs/PAGES.md) - Listado de rutas y endpoints
+- [Guía de Despliegue en Vercel](./docs/DEPLOY.md)
+- [Checklist de Salida a Producción (Go-Live)](./docs/GO-LIVE.md)
+- [Especificación de Requisitos (PRD)](./docs/PRD.md)
+- [Modelo de Datos y Esquema Prisma](./docs/DATA-MODEL.md)
 
 ## Licencia
 

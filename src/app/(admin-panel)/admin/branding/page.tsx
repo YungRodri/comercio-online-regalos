@@ -37,7 +37,7 @@ export default function AdminBrandingPage() {
     formState: { errors },
   } = useForm<BrandingForm>({
     resolver: zodResolver(brandingSchema),
-    defaultValues: { storeName: "BasicTechShop" },
+    defaultValues: { storeName: "Cyc Regalos" },
   })
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function AdminBrandingPage() {
       .then((r) => r.json())
       .then((data) => {
         reset({
-          storeName: data.storeName || "BasicTechShop",
+          storeName: data.storeName || "Cyc Regalos",
           bannerTitle: data.bannerTitle || "",
           bannerText: data.bannerText || "",
         })

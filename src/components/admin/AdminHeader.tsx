@@ -58,7 +58,7 @@ export function AdminHeader() {
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium">Admin</p>
-                <p className="text-xs text-muted-foreground">admin@basictechshop.com</p>
+                <p className="text-xs text-muted-foreground">admin@cycregalos.cl</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

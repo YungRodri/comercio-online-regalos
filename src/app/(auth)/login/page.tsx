@@ -1,6 +1,8 @@
+"use client"
+
 import { Suspense } from "react"
 import Link from "next/link"
-import { Cpu } from "lucide-react"
+import { Gift } from "lucide-react"
 import { LoginForm } from "@/components/auth/LoginForm"
 
 export default function LoginPage() {
@@ -9,9 +11,9 @@ export default function LoginPage() {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <Link href="/" className="flex items-center gap-2 self-center font-medium">
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-            <Cpu className="size-4" />
+            <Gift className="size-4" />
           </div>
-          BasicTech
+          Cyc Regalos
         </Link>
         <Suspense fallback={<div className="text-center">Cargando...</div>}>
           <LoginForm />

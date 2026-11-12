@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         cloudinary.uploader
           .upload_stream(
             {
-              folder: "basictech/custom-products",
+              folder: "cycregalos/custom-products",
               resource_type: "image",
               transformation: [
                 { width: 1200, height: 1200, crop: "limit" },

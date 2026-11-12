@@ -48,21 +48,21 @@ export default function AdminSettingsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="storeName">Nombre de la tienda</Label>
-                  <Input id="storeName" defaultValue="BasicTechShop" />
+                  <Input id="storeName" defaultValue="Cyc Regalos" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="storeEmail">Email de contacto</Label>
-                  <Input id="storeEmail" type="email" defaultValue="info@basictechshop.com" />
+                  <Input id="storeEmail" type="email" defaultValue="contacto@cycregalos.cl" />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="storePhone">Telefono</Label>
-                  <Input id="storePhone" defaultValue="+51 999 888 777" />
+                  <Input id="storePhone" defaultValue="+56 9 1234 5678" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="storeAddress">Direccion</Label>
-                  <Input id="storeAddress" defaultValue="Av. Tecnologia 123, Lima" />
+                  <Input id="storeAddress" defaultValue="Santiago, Chile" />
                 </div>
               </div>
               <div className="space-y-2">

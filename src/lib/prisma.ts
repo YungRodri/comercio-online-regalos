@@ -7,14 +7,28 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined
 }
 
+function getPool(): Pool {
+  if (globalForPrisma.pool) {
+    return globalForPrisma.pool
+  }
+  const isProduction = process.env.NODE_ENV === "production"
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    // Serverless functions in Vercel should cap connections to prevent exhausting Postgres connection limits
+    max: isProduction ? 1 : 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  })
+  globalForPrisma.pool = pool
+  return pool
+}
+
 function createPrismaClient() {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  const pool = getPool()
   const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter })
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma
-}
+globalForPrisma.prisma = prisma

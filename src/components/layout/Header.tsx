@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useSession, signOut } from "next-auth/react"
 import { Search, ShoppingCart, Heart, User, LogOut, Settings, Package, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,11 +36,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="relative h-10 w-10">
-              <img
-                src="/logo.png"
-                alt="cycregalos logo"
-                className="object-contain w-full h-full"
-              />
+              <Image src="/logo.png" alt="cycregalos logo" width={40} height={40} className="object-contain w-full h-full" priority />
             </div>
             <span className="hidden text-xl font-bold sm:inline-block tracking-tight">
               cycregalos

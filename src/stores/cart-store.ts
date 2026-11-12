@@ -79,7 +79,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: "basictech-cart",
+      name: "cycregalos-cart",
     }
   )
 )

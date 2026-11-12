@@ -17,13 +17,13 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
     filters.brands.length > 0 ||
     filters.categories.length > 0 ||
     filters.priceRange[0] > 0 ||
-    filters.priceRange[1] < 5000
+    filters.priceRange[1] < 100000
 
   const handleClearFilters = () => {
     onFiltersChange({
       brands: [],
       categories: [],
-      priceRange: [0, 5000],
+      priceRange: [0, 100000],
       sortBy: filters.sortBy,
     })
   }
