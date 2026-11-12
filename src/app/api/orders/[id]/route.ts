@@ -7,7 +7,7 @@ import { writeAuditLog } from "@/lib/audit"
 type Params = Promise<{ id: string }>
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Params }
 ) {
   const session = await auth()
@@ -162,7 +162,7 @@ export async function PUT(
 
 // Only admins can delete orders
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Params }
 ) {
   const { session, error } = await requireAdmin()

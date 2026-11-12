@@ -7,7 +7,7 @@ import { writeAuditLog } from "@/lib/audit"
 type Params = Promise<{ id: string }>
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Params }
 ) {
   try {
@@ -99,7 +99,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Params }
 ) {
   const { session, error } = await requireAdmin()

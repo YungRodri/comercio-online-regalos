@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const session = await auth()
 
@@ -39,6 +39,8 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next()
 }
+
+export default proxy
 
 export const config = {
   matcher: [
