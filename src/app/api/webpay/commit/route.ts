@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { commitWebpayTransaction } from "@/lib/webpay"
 import { prisma } from "@/lib/prisma"
+import { sendOrderConfirmationEmail } from "@/lib/email"
 
 function getAppUrl(request: NextRequest) {
   return process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
@@ -53,7 +54,7 @@ async function handleCommit(request: NextRequest) {
     return NextResponse.redirect(getCancelUrl(request, "missing_token"))
   }
 
-  // Validate token format — Webpay tokens are alphanumeric hex strings
+  // Validate token format — Webpay tokens are alphanumeric hex strings (64 chars)
   if (!/^[a-zA-Z0-9]{64}$/.test(token)) {
     return NextResponse.redirect(getCancelUrl(request, "invalid_token"))
   }
@@ -64,28 +65,76 @@ async function handleCommit(request: NextRequest) {
     const isApproved =
       result.status === "AUTHORIZED" && Number(result.response_code) === 0
 
+    // Look up the order by buy_order
+    const existingOrder = await prisma.order.findFirst({
+      where: { stripeSessionId: result.buy_order },
+      include: {
+        items: true,
+        user: { select: { name: true, email: true } },
+        address: true,
+      },
+    })
+
     if (!isApproved) {
+      if (existingOrder && existingOrder.status === "PENDING") {
+        await prisma.order.update({
+          where: { id: existingOrder.id },
+          data: { status: "CANCELLED" },
+        })
+      }
       return NextResponse.redirect(getCancelUrl(request, "rejected"))
     }
 
-    // Look up the pending order by buy_order (stored in stripeSessionId field for Webpay)
-    const existingOrder = await prisma.order.findFirst({
-      where: { stripeSessionId: result.buy_order },
-    })
-
     if (existingOrder) {
-      // Order already created — just redirect to success
-      const order = await prisma.order.update({
-        where: { id: existingOrder.id },
-        data: { status: "CONFIRMED" },
-      })
+      if (existingOrder.status === "PENDING") {
+        // Transition order to CONFIRMED
+        await prisma.order.update({
+          where: { id: existingOrder.id },
+          data: { status: "CONFIRMED" },
+        })
+
+        // Decrement product stock
+        for (const item of existingOrder.items) {
+          try {
+            await prisma.product.update({
+              where: { id: item.productId },
+              data: { stock: { decrement: item.quantity } },
+            })
+          } catch (stockErr) {
+            console.error(`Failed to decrement stock for item ${item.productId}:`, stockErr)
+          }
+        }
+
+        // Send order confirmation email
+        if (existingOrder.user?.email) {
+          try {
+            await sendOrderConfirmationEmail({
+              to: existingOrder.user.email,
+              customerName: existingOrder.user.name,
+              orderNumber: existingOrder.orderNumber,
+              orderTotal: Number(existingOrder.total),
+              orderItems: existingOrder.items.map((i) => ({
+                name: i.name,
+                quantity: i.quantity,
+                price: Number(i.price),
+              })),
+              shippingAddress: existingOrder.address
+                ? `${existingOrder.address.address}, ${existingOrder.address.city}`
+                : undefined,
+              paymentMethod: "Webpay",
+            })
+          } catch (emailErr) {
+            console.error("Error sending Webpay order confirmation email:", emailErr)
+          }
+        }
+      }
+
       return NextResponse.redirect(
-        getSuccessUrl(request, order.trackingCode, order.orderNumber)
+        getSuccessUrl(request, existingOrder.trackingCode, existingOrder.orderNumber)
       )
     }
 
-    // No order exists yet — redirect to success with transaction id
-    // The client will create the order from cart data
+    // Fallback if order was not found
     const url = new URL("/checkout/success", getAppUrl(request))
     url.searchParams.set("provider", "webpay")
     url.searchParams.set("transaction_id", result.buy_order)

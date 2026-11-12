@@ -73,39 +73,114 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const isAdmin = session.user.role === "ADMIN"
     const body = await request.json()
+    const itemsInput: Array<{
+      productId: string
+      quantity: number
+      customImage?: string
+    }> = body.items || []
+
+    if (!Array.isArray(itemsInput) || itemsInput.length === 0) {
+      return NextResponse.json(
+        { error: "El pedido debe contener al menos un producto" },
+        { status: 400 }
+      )
+    }
+
+    // Security: fetch and verify real products from DB
+    const productIds = itemsInput.map((i) => i.productId)
+    const dbProducts = await prisma.product.findMany({
+      where: { id: { in: productIds }, isActive: true },
+    })
+    const productMap = new Map(dbProducts.map((p) => [p.id, p]))
+
+    for (const item of itemsInput) {
+      const prod = productMap.get(item.productId)
+      if (!prod) {
+        return NextResponse.json(
+          { error: "Uno o más productos no están disponibles" },
+          { status: 400 }
+        )
+      }
+      if (typeof item.quantity !== "number" || item.quantity <= 0) {
+        return NextResponse.json(
+          { error: `Cantidad inválida para ${prod.name}` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Calculate real subtotal from database prices
+    const subtotal = itemsInput.reduce((acc, item) => {
+      const prod = productMap.get(item.productId)!
+      return acc + Math.round(Number(prod.price)) * item.quantity
+    }, 0)
+
+    const shipping = subtotal >= 50000 ? 0 : 3990
+    const total = subtotal + shipping
+
+    // Non-admin cannot set arbitrary status or confirm orders without paying through gateway
+    const initialStatus = isAdmin && body.status ? body.status.toUpperCase() : "PENDING"
 
     // Generate order number
     const orderCount = await prisma.order.count()
     const orderNumber = `ORD-${new Date().getFullYear()}-${String(orderCount + 1).padStart(4, "0")}`
 
+    // Ensure user has valid address
+    let addressId = body.addressId
+    if (!addressId) {
+      const userAddr = await prisma.address.findFirst({
+        where: { userId: session.user.id },
+        orderBy: { isDefault: "desc" },
+      })
+      if (userAddr) {
+        addressId = userAddr.id
+      } else {
+        const userRec = await prisma.user.findUnique({ where: { id: session.user.id } })
+        const createdAddr = await prisma.address.create({
+          data: {
+            userId: session.user.id,
+            label: "Envío",
+            name: userRec?.name || "Cliente",
+            phone: userRec?.phone || "+56 9 0000 0000",
+            address: "Por coordinar",
+            city: "Santiago",
+            state: "RM",
+            zipCode: "0000000",
+            isDefault: true,
+          },
+        })
+        addressId = createdAddr.id
+      }
+    }
+
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        status: "CONFIRMED",
-        subtotal: body.subtotal,
-        shipping: body.shipping,
-        total: body.total,
-        paymentMethod: body.paymentMethod || "CARD",
-        stripeSessionId: body.transactionId,
+        status: initialStatus,
+        subtotal,
+        shipping,
+        discount: 0,
+        total,
+        paymentMethod: body.paymentMethod || "TRANSFER",
+        stripeSessionId: isAdmin ? body.transactionId : null,
         notes: body.notes,
         userId: session.user.id,
-        addressId: body.addressId,
+        addressId,
         items: {
-          create: (body.items || []).map((item: {
-            productId: string
-            name: string
-            price: number
-            quantity: number
-            customImage?: string
-          }) => ({
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            total: item.price * item.quantity,
-            productId: item.productId,
-            customImage: item.customImage || null,
-          })),
+          create: itemsInput.map((item) => {
+            const prod = productMap.get(item.productId)!
+            const unitPrice = Math.round(Number(prod.price))
+            return {
+              productId: item.productId,
+              name: prod.name,
+              price: unitPrice,
+              quantity: item.quantity,
+              total: unitPrice * item.quantity,
+              customImage: item.customImage || null,
+            }
+          }),
         },
       },
       include: {
@@ -114,27 +189,28 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Send confirmation email — fetch user email separately (not in order include)
-    const userRecord = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { email: true, name: true },
-    })
-
-    if (userRecord) {
-      await sendOrderConfirmationEmail({
-        to: userRecord.email,
-        customerName: userRecord.name,
-        orderNumber: order.orderNumber,
-        orderTotal: Number(order.total),
-        orderItems: (body.items || []).map((item: {
-          name: string; price: number; quantity: number
-        }) => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        paymentMethod: body.paymentMethod || "Webpay",
+    // If order was created confirmed by admin, send confirmation email
+    if (initialStatus === "CONFIRMED") {
+      const userRecord = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { email: true, name: true },
       })
+
+      if (userRecord?.email) {
+        await sendOrderConfirmationEmail({
+          to: userRecord.email,
+          customerName: userRecord.name,
+          orderNumber: order.orderNumber,
+          orderTotal: total,
+          orderItems: order.items.map((i) => ({
+            name: i.name,
+            quantity: i.quantity,
+            price: Number(i.price),
+          })),
+          shippingAddress: `${order.address.address}, ${order.address.city}`,
+          paymentMethod: order.paymentMethod,
+        })
+      }
     }
 
     return NextResponse.json(
@@ -150,7 +226,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating order:", error)
     return NextResponse.json(
-      { error: "Error creating order" },
+      { error: "Error al crear el pedido" },
       { status: 500 }
     )
   }

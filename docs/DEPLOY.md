@@ -1,150 +1,111 @@
-# 🚀 Guía de Despliegue — Comercio Online Regalos
+# 🚀 Guía de Despliegue a Producción — Cyc Regalos
 
 ## Requisitos previos
 
 - Node.js 20+
-- Cuenta en [Vercel](https://vercel.com) (recomendado) o cualquier host Node.js
-- Base de datos PostgreSQL (recomendado: [Neon](https://neon.tech), [Supabase](https://supabase.com) o [Railway](https://railway.app))
-- Cuenta en [Cloudinary](https://cloudinary.com) para imágenes
-- Cuenta en [Stripe](https://stripe.com) para pagos
+- Cuenta en [Vercel](https://vercel.com) (recomendado) o cualquier host Node.js / Docker
+- Base de datos PostgreSQL en la nube (recomendado: [Neon](https://neon.tech), [Supabase](https://supabase.com) o [Railway](https://railway.app))
+- Cuenta en [Cloudinary](https://cloudinary.com) para almacenamiento de imágenes
+- Cuenta en [Stripe](https://stripe.com) y/o [Transbank Developers](https://www.transbankdevelopers.cl) para procesamiento de pagos
+- Cuenta en [Resend](https://resend.com) para correos transaccionales
 
 ---
 
-## Paso 1 — Base de datos
+## Paso 1 — Base de datos PostgreSQL
 
-1. Crea una base de datos PostgreSQL en tu proveedor elegido.
-2. Copia la connection string (formato: `postgresql://user:pass@host:5432/db?sslmode=require`).
-3. Guárdala como `DATABASE_URL` en tus variables de entorno.
-
----
-
-## Paso 2 — Variables de entorno
-
-Copia `.env.example` a `.env.local` (desarrollo) o configura en tu plataforma (producción).
-
-| Variable | Cómo obtenerla |
-|---|---|
-| `DATABASE_URL` | Panel de tu proveedor PostgreSQL |
-| `AUTH_SECRET` | `openssl rand -base64 32` en terminal |
-| `NEXTAUTH_URL` | URL pública de tu sitio (ej. `https://mitienda.com`) |
-| `NEXT_PUBLIC_APP_URL` | Igual que `NEXTAUTH_URL` |
-| `CLOUDINARY_CLOUD_NAME` | [Cloudinary Dashboard](https://cloudinary.com/console) |
-| `CLOUDINARY_API_KEY` | [Cloudinary Dashboard](https://cloudinary.com/console) |
-| `CLOUDINARY_API_SECRET` | [Cloudinary Dashboard](https://cloudinary.com/console) |
-| `STRIPE_SECRET_KEY` | [Stripe Dashboard → API Keys](https://dashboard.stripe.com/apikeys) |
-| `STRIPE_WEBHOOK_SECRET` | Ver Paso 4 |
-| `WEBPAY_COMMERCE_CODE` | Credenciales de Transbank (ver Paso 5) |
-| `WEBPAY_API_KEY` | Credenciales de Transbank |
-| `RESEND_API_KEY` | [Resend → API Keys](https://resend.com/api-keys) (opcional — emails se omiten si no está configurado) |
-| `RESEND_FROM_EMAIL` | Dirección remitente verificada en Resend |
+1. Crea un proyecto en Neon, Supabase o Railway.
+2. Copia la cadena de conexión (Connection String) PostgreSQL:
+   ```text
+   postgresql://usuario:contraseña@host:5432/db_name?sslmode=require
+   ```
+3. Guárdala como `DATABASE_URL`.
 
 ---
 
-## Paso 3 — Migraciones y seed
+## Paso 2 — Variables de Entorno de Producción
+
+En tu plataforma de hosting (ej. Vercel Dashboard → *Settings* → *Environment Variables*), configura:
+
+| Variable | Descripción | Ejemplo / Valor |
+|---|---|---|
+| `DATABASE_URL` | Conexión PostgreSQL con SSL | `postgresql://...` |
+| `AUTH_SECRET` | Llave criptográfica para NextAuth v5 | `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | URL pública canónica del comercio | `https://cycregalos.cl` |
+| `NEXT_PUBLIC_APP_URL` | URL pública para retornos de pasarelas | `https://cycregalos.cl` |
+| `CLOUDINARY_CLOUD_NAME` | Cloud Name de Cloudinary | `tu_cloud_name` |
+| `CLOUDINARY_API_KEY` | API Key de Cloudinary | `1234567890` |
+| `CLOUDINARY_API_SECRET` | API Secret de Cloudinary | `abcdef...` |
+| `STRIPE_SECRET_KEY` | Llave secreta de Stripe | `sk_live_...` |
+| `STRIPE_WEBHOOK_SECRET` | Secreto del Webhook de Stripe | `whsec_...` |
+| `WEBPAY_COMMERCE_CODE` | Código de comercio Transbank | `TU_CODIGO_TRANSBANK` |
+| `WEBPAY_API_KEY` | API Key de producción Transbank | `TU_API_KEY_TRANSBANK` |
+| `RESEND_API_KEY` | API Key de Resend (correos) | `re_...` |
+| `RESEND_FROM_EMAIL` | Remitente verificado | `pedidos@cycregalos.cl` |
+| `SEED_ADMIN_EMAIL` | Email del usuario administrador inicial | `admin@cycregalos.cl` |
+| `SEED_ADMIN_PASSWORD` | Contraseña segura para el admin | `TuPasswordFuerte123!` |
+
+---
+
+## Paso 3 — Migraciones y Datos Iniciales
+
+En tu terminal con la variable `DATABASE_URL` apuntando a tu base de datos de producción:
 
 ```bash
-# Aplicar migraciones en producción (NO usar migrate dev)
+# 1. Aplicar las migraciones existentes a la base de datos de producción:
 npx prisma migrate deploy
 
-# Seed inicial (solo una vez, en desarrollo)
-npm run db:seed
+# 2. (Opcional) Sembrar catálogo inicial y usuario administrador:
+# Nota: FORCE_SEED es obligatorio en entornos con NODE_ENV=production
+FORCE_SEED=I_KNOW_THIS_WILL_DELETE_ALL_DATA npm run db:seed
 ```
 
-> ⚠️ El seed borrará todos los datos existentes. No ejecutar en producción a menos que se establezca `FORCE_SEED=true`.
+---
+
+## Paso 4 — Configuración del Webhook de Stripe
+
+1. Ingresa a [Stripe Dashboard → Developers → Webhooks](https://dashboard.stripe.com/webhooks).
+2. Agrega un endpoint con la URL:
+   `https://tu-dominio.com/api/webhook/stripe`
+3. Selecciona el evento:
+   - `checkout.session.completed`
+4. Guarda y copia el **Signing secret** (`whsec_...`) en la variable `STRIPE_WEBHOOK_SECRET`.
 
 ---
 
-## Paso 4 — Configurar Stripe Webhook
+## Paso 5 — Configuración de Webpay Plus (Transbank)
 
-1. Ve a [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/webhooks).
-2. Agrega un endpoint: `https://TU-DOMINIO/api/webhook/stripe`
-3. Selecciona el evento: `checkout.session.completed`
-4. Copia el **Signing secret** → guárdalo como `STRIPE_WEBHOOK_SECRET`.
-
----
-
-## Paso 5 — Webpay (Transbank)
-
-### Desarrollo / Integración
-Usa las credenciales de prueba ya configuradas en `.env.example`.
-
-### Producción
-1. Registrate en [Transbank Developers](https://www.transbankdevelopers.cl).
-2. Completa el proceso de certificación para obtener credenciales de producción.
-3. Reemplaza `WEBPAY_COMMERCE_CODE` y `WEBPAY_API_KEY` con los valores reales.
+- **Integración / Pruebas:**
+  Usa las credenciales públicas de Transbank ya configuradas por defecto en `.env.example`.
+- **Producción:**
+  1. Concluye el proceso de integración en el portal de [Transbank Developers](https://www.transbankdevelopers.cl).
+  2. Solicita el paso a producción y obtén tu código de comercio y llave secreta definitiva.
+  3. Establece `WEBPAY_COMMERCE_CODE` y `WEBPAY_API_KEY`.
+  4. La URL de retorno está configurada automáticamente como `https://tu-dominio.com/api/webpay/commit`.
 
 ---
 
-## Paso 6 — Email transaccional (Resend) — *Opcional*
+## Paso 6 — Despliegue en Vercel
 
-Los emails de confirmación de pedido se envían automáticamente cuando se crea una orden.
-Si `RESEND_API_KEY` no está configurado, los emails se omiten silenciosamente.
+### Opción A — Desde la interfaz web (Recomendada)
+1. Ve a [vercel.com/new](https://vercel.com/new).
+2. Importa tu repositorio `YungRodri/comercio-online-regalos`.
+3. Ingresa las variables de entorno de la tabla del Paso 2.
+4. Presiona **Deploy**.
 
-1. Crea una cuenta en [resend.com](https://resend.com).
-2. Verifica tu dominio (DNS) en [Resend → Domains](https://resend.com/domains).
-3. Genera una API key en [Resend → API Keys](https://resend.com/api-keys).
-4. Configura en tu plataforma:
-   - `RESEND_API_KEY=re_xxxxx`
-   - `RESEND_FROM_EMAIL=noreply@tudominio.com`
-
-> ℹ️ En desarrollo puedes usar `onboarding@resend.dev` como remitente de prueba (solo envía a tu cuenta de Resend).
-
----
-
-## Paso 6 — Deploy en Vercel
-
+### Opción B — Mediante Vercel CLI
 ```bash
-# Instala Vercel CLI
 npm i -g vercel
-
-# Deploy
 vercel --prod
 ```
 
-O conecta el repositorio directamente desde [vercel.com/new](https://vercel.com/new).
-
-**Configuración recomendada en Vercel:**
-- Framework: Next.js (autodetectado)
-- Build Command: `npm run build`
-- Output Directory: `.next`
-- Install Command: `npm install`
-
 ---
 
-## Paso 7 — Verificación post-deploy
+## Paso 7 — Medidas de Seguridad Incorporadas
 
-- [ ] La página principal carga correctamente
-- [ ] Los productos se muestran (API conectada a BD)
-- [ ] Registro e inicio de sesión funcionan
-- [ ] Se puede agregar al carrito
-- [ ] El pago con Stripe redirige correctamente
-- [ ] El webhook de Stripe crea el pedido en la BD
-- [ ] El panel `/admin` requiere autenticación y rol ADMIN
-- [ ] El perfil `/profile` requiere autenticación
-
----
-
-## Comandos útiles
-
-```bash
-# Desarrollo local
-npm run dev
-
-# Build de producción
-npm run build
-
-# Iniciar servidor de producción
-npm start
-
-# Verificar esquema de Prisma
-npx prisma validate
-
-# Abrir Prisma Studio (explorador de BD)
-npx prisma studio
-
-# Aplicar migraciones
-npx prisma migrate deploy
-
-# Seed
-npm run db:seed
-```
+El proyecto cuenta con las siguientes protecciones implementadas:
+- ✅ **Protección anti-IDOR** en direcciones y pedidos (los clientes solo pueden acceder y modificar sus propios recursos).
+- ✅ **Control de acceso administrativo y de taller**: Roles `ADMIN` y `WORKER` protegidos tanto a nivel de middleware como en cada API route individual.
+- ✅ **Validación de precios en el servidor (Anti-Price Tampering)**: Ni Stripe ni Webpay aceptan precios enviados por el cliente; todo monto se recalcula contra la base de datos.
+- ✅ **Validación de firmas de archivos (Magic Bytes)**: Las subidas de imágenes verifican los encabezados binarios de JPEG, PNG y WebP para prevenir subida de archivos maliciosos.
+- ✅ **Rate Limiting**: Limitadores de tasa por IP en login, registro, subida de archivos, canje de cupones y seguimiento de pedidos.
+- ✅ **Cabeceras HTTP de Seguridad**: HSTS, Anti-Clickjacking (`X-Frame-Options: SAMEORIGIN`), protección de MIME sniffing y directivas de permisos en `next.config.ts`.

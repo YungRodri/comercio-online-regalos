@@ -33,6 +33,7 @@ export function WebpayCheckoutButton() {
             name: item.product.name,
             price: item.product.price,
             quantity: item.quantity,
+            customImage: item.customImage || null,
           })),
         }),
       })

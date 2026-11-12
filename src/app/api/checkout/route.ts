@@ -3,16 +3,15 @@ import { stripe } from "@/lib/stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-interface CartItem {
+interface CartItemInput {
   id: string
-  name: string
-  price: number
+  name?: string
   quantity: number
-  image?: string
+  customImage?: string
 }
 
 interface CheckoutBody {
-  items: CartItem[]
+  items: CartItemInput[]
   couponCode?: string
   customerEmail?: string
   shippingAddressId?: string
@@ -24,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Verify user is authenticated
     const session = await auth()
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Debes iniciar sesión para realizar una compra" },
         { status: 401 }
@@ -34,29 +33,74 @@ export async function POST(request: NextRequest) {
     const body: CheckoutBody = await request.json()
     const { items, couponCode, metadata } = body
 
-    if (!items || items.length === 0) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        { error: "No items in cart" },
+        { error: "No hay productos en el carrito" },
         { status: 400 }
       )
     }
 
-    // Create line items for Stripe
-    const lineItems = items.map((item) => ({
-      price_data: {
-        currency: "pen", // Peruvian Sol
-        product_data: {
-          name: item.name,
-          images: item.image ? [item.image] : [],
-        },
-        unit_amount: Math.round(item.price * 100), // Stripe uses cents
+    // Security: fetch real products from DB to prevent client-side price tampering
+    const itemIds = items.map((i) => i.id)
+    const dbProducts = await prisma.product.findMany({
+      where: {
+        id: { in: itemIds },
+        isActive: true,
       },
-      quantity: item.quantity,
-    }))
+    })
 
-    // Calculate subtotal for free shipping check
-    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0)
-    const qualifiesForFreeShipping = subtotal >= 200
+    const productMap = new Map(dbProducts.map((p) => [p.id, p]))
+
+    // Validate existence and stock
+    for (const item of items) {
+      const dbProd = productMap.get(item.id)
+      if (!dbProd) {
+        return NextResponse.json(
+          { error: `El producto seleccionado no está disponible` },
+          { status: 400 }
+        )
+      }
+
+      if (typeof item.quantity !== "number" || item.quantity <= 0) {
+        return NextResponse.json(
+          { error: `Cantidad inválida para ${dbProd.name}` },
+          { status: 400 }
+        )
+      }
+
+      if (dbProd.stock < item.quantity) {
+        return NextResponse.json(
+          { error: `Stock insuficiente para ${dbProd.name}. Disponibles: ${dbProd.stock}` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Build verified line items for Stripe (CLP is a zero-decimal currency in Stripe)
+    const lineItems = items.map((item) => {
+      const dbProd = productMap.get(item.id)!
+      const unitPrice = Math.round(Number(dbProd.price))
+
+      return {
+        price_data: {
+          currency: "clp",
+          product_data: {
+            name: dbProd.name,
+            images: dbProd.images && dbProd.images.length > 0 ? [dbProd.images[0]] : [],
+          },
+          unit_amount: unitPrice,
+        },
+        quantity: item.quantity,
+      }
+    })
+
+    // Calculate real subtotal from database prices
+    const subtotal = items.reduce((acc, item) => {
+      const dbProd = productMap.get(item.id)!
+      return acc + Math.round(Number(dbProd.price)) * item.quantity
+    }, 0)
+
+    const qualifiesForFreeShipping = subtotal >= 50000
 
     // Validate coupon if provided
     let couponId: string | null = null
@@ -80,11 +124,11 @@ export async function POST(request: NextRequest) {
         } else {
           discountAmount = Math.min(Number(coupon.discountValue), subtotal)
         }
-        discountAmount = Math.round(discountAmount * 100) / 100
+        discountAmount = Math.round(discountAmount)
       }
     }
 
-    // Build shipping options based on subtotal
+    // Build shipping options in CLP
     const shippingOptions = qualifiesForFreeShipping
       ? [
           {
@@ -92,12 +136,12 @@ export async function POST(request: NextRequest) {
               type: "fixed_amount" as const,
               fixed_amount: {
                 amount: 0,
-                currency: "pen",
+                currency: "clp",
               },
-              display_name: "Envio gratis",
+              display_name: "Envío gratis",
               delivery_estimate: {
-                minimum: { unit: "business_day" as const, value: 3 },
-                maximum: { unit: "business_day" as const, value: 5 },
+                minimum: { unit: "business_day" as const, value: 2 },
+                maximum: { unit: "business_day" as const, value: 4 },
               },
             },
           },
@@ -105,10 +149,10 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 1500, // $ 15.00
-                currency: "pen",
+                amount: 4990,
+                currency: "clp",
               },
-              display_name: "Envio express",
+              display_name: "Envío express",
               delivery_estimate: {
                 minimum: { unit: "business_day" as const, value: 1 },
                 maximum: { unit: "business_day" as const, value: 2 },
@@ -121,13 +165,13 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 1500, // $ 15.00
-                currency: "pen",
+                amount: 3990,
+                currency: "clp",
               },
-              display_name: "Envio estandar",
+              display_name: "Envío estándar",
               delivery_estimate: {
-                minimum: { unit: "business_day" as const, value: 3 },
-                maximum: { unit: "business_day" as const, value: 5 },
+                minimum: { unit: "business_day" as const, value: 2 },
+                maximum: { unit: "business_day" as const, value: 4 },
               },
             },
           },
@@ -135,10 +179,10 @@ export async function POST(request: NextRequest) {
             shipping_rate_data: {
               type: "fixed_amount" as const,
               fixed_amount: {
-                amount: 3000, // $ 30.00
-                currency: "pen",
+                amount: 5990,
+                currency: "clp",
               },
-              display_name: "Envio express",
+              display_name: "Envío express",
               delivery_estimate: {
                 minimum: { unit: "business_day" as const, value: 1 },
                 maximum: { unit: "business_day" as const, value: 2 },
@@ -147,26 +191,33 @@ export async function POST(request: NextRequest) {
           },
         ]
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
+
     // Create Stripe checkout session
     const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
+      success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/checkout/cancel`,
       customer_email: session.user.email || undefined,
       metadata: {
         ...metadata,
         userId: session.user.id,
-        // Use empty string as sentinel for "no coupon" since Stripe metadata values must be strings
         couponId: couponId ?? "",
         discountAmount: String(discountAmount),
-        items: JSON.stringify(items.map((i) => ({ id: i.id, qty: i.quantity }))),
+        items: JSON.stringify(
+          items.map((i) => ({
+            id: i.id,
+            qty: i.quantity,
+            customImage: i.customImage || null,
+          }))
+        ),
       },
       shipping_options: shippingOptions,
       billing_address_collection: "required",
       shipping_address_collection: {
-        allowed_countries: ["PE"],
+        allowed_countries: ["CL"],
       },
     })
 
@@ -178,7 +229,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating checkout session:", error)
     return NextResponse.json(
-      { error: "Error creating checkout session" },
+      { error: "Error al crear la sesión de pago con Stripe" },
       { status: 500 }
     )
   }

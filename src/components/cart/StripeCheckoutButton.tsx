@@ -34,6 +34,7 @@ export function StripeCheckoutButton() {
             price: item.product.price,
             quantity: item.quantity,
             image: item.product.images?.[0],
+            customImage: item.customImage || null,
           })),
           customerEmail: session.user?.email,
         }),
@@ -48,15 +49,12 @@ export function StripeCheckoutButton() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        throw new Error("No se recibió la URL de pago")
+        throw new Error("No checkout URL returned from Stripe")
       }
     } catch (error) {
       console.error("Error creating checkout session:", error)
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Error al procesar el pago. Intenta nuevamente."
-      )
+      const fallback = "No se pudo conectar con Stripe. Verifica tu conexión o intenta más tarde."
+      setErrorMessage(error instanceof Error ? error.message || fallback : fallback)
     } finally {
       setLoading(false)
     }
@@ -75,7 +73,7 @@ export function StripeCheckoutButton() {
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Procesando...
+            Redirigiendo...
           </>
         ) : !session ? (
           <>
@@ -85,7 +83,7 @@ export function StripeCheckoutButton() {
         ) : (
           <>
             <CreditCard className="mr-2 h-4 w-4" />
-            Pagar con Stripe
+            Pagar con Tarjeta (Stripe)
           </>
         )}
       </Button>

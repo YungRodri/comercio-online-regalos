@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { transformBrand } from "@/lib/transformers"
+import { requireAdmin } from "@/lib/api-auth"
 
 export async function GET() {
   try {
@@ -24,8 +25,18 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
+
+    if (!body.name || !body.slug) {
+      return NextResponse.json(
+        { error: "Nombre y slug son requeridos" },
+        { status: 400 }
+      )
+    }
 
     const brand = await prisma.brand.create({
       data: {

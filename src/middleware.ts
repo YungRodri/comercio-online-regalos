@@ -6,14 +6,23 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const session = await auth()
 
-  // ── Rutas que requieren rol ADMIN ──────────────────────────
-  if (pathname.startsWith("/admin")) {
+  // ── Rutas que requieren rol ADMIN o WORKER ─────────────────
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+    const isApi = pathname.startsWith("/api/")
+
     if (!session?.user) {
+      if (isApi) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+      }
       const loginUrl = new URL("/login", request.url)
       loginUrl.searchParams.set("callbackUrl", pathname)
       return NextResponse.redirect(loginUrl)
     }
+
     if (session.user.role !== "ADMIN" && session.user.role !== "WORKER") {
+      if (isApi) {
+        return NextResponse.json({ error: "Acceso denegado" }, { status: 403 })
+      }
       return NextResponse.redirect(new URL("/", request.url))
     }
   }
@@ -34,6 +43,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/api/admin/:path*",
     "/profile/:path*",
     "/checkout/:path*",
   ],

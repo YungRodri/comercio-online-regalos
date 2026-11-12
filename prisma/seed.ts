@@ -2,6 +2,7 @@ import "dotenv/config"
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { Pool } from "pg"
+import bcrypt from "bcryptjs"
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
@@ -98,38 +99,39 @@ async function main() {
       price: 35000,
       comparePrice: 40000,
       images: ["https://images.unsplash.com/photo-1515562141207-7a8f73fce811?w=500"],
-      description: "Hermoso collar que representa a la familia, bañado en plata 925.",
-      specs: { Material: "Plata 925", Cadena: "45cm", Dije: "Árbol con circones" },
+      description: "Collar de plata con dije de árbol de la vida y circonias incrustadas.",
+      specs: { Material: "Plata 925", Largo: "45cm", Incluye: "Caja de regalo" },
       stock: 15,
       isNew: true,
       isFeatured: true,
     },
     {
-      name: "Tazón Sublimado Mamá",
-      slug: "tazon-sublimado-mama",
-      brand: "Artesanal",
-      category: "tazones",
-      price: 15000,
-      images: ["https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500"],
-      description: "Tazón de alta calidad para empezar sus mañanas con el mensaje más lindo.",
-      specs: { Capacidad: "11oz", Material: "Cerámica", Cuidados: "Apto para microondas" },
-      stock: 30,
+      name: "Desayuno Sorpresa Amor",
+      slug: "desayuno-sorpresa-amor",
+      brand: "Cyc Regalos",
+      category: "desayunos",
+      price: 38000,
+      images: ["https://images.unsplash.com/photo-1513442542250-854d436a73f2?w=500"],
+      description: "Delicioso desayuno con jugo natural, sandwich gourmet, café y flores frescas.",
+      specs: { Incluye: "Bandeja decorada, Taza personalizada, Globo metalizado" },
+      stock: 10,
       isNew: false,
       isFeatured: false,
     },
     {
-      name: "Desayuno Sorpresa",
-      slug: "desayuno-sorpresa",
-      brand: "Cyc Regalos",
-      category: "desayunos",
-      price: 60000,
-      images: ["https://images.unsplash.com/photo-1550050853-462deff16b9b?w=500"],
-      description: "Un despertar inolvidable con todo lo que a ella más le gusta.",
-      specs: { Incluye: "Jugo, Sándwich, Muffin, Fruta, Globo" },
-      stock: 10,
-      isNew: true,
+      name: "Tazón Mágico Personalizado",
+      slug: "tazon-magico",
+      brand: "Artesanal",
+      category: "tazones",
+      price: 12000,
+      comparePrice: 15000,
+      images: ["https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500"],
+      description: "Tazón que revela tu foto o frase especial con agua caliente.",
+      specs: { Capacidad: "325ml", Material: "Cerámica térmica" },
+      stock: 40,
+      isNew: false,
       isFeatured: true,
-    }
+    },
   ]
 
   for (const product of productsData) {
@@ -153,12 +155,16 @@ async function main() {
   console.log(`Created ${productsData.length} products`)
 
   // Create Admin User
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@cycregalos.cl"
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || "Admin_CycRegalos_2026!"
+  const adminHashedPassword = await bcrypt.hash(adminPassword, 10)
+
   const adminUser = await prisma.user.create({
     data: {
-      email: "admin@basictech.com",
-      password: "$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu9lK", // password: admin123
-      name: "Admin User",
-      phone: "+51 999 888 777",
+      email: adminEmail,
+      password: adminHashedPassword,
+      name: "Administrador Cyc Regalos",
+      phone: "+56 9 9999 8888",
       role: "ADMIN",
       status: "ACTIVE",
     },
@@ -166,12 +172,13 @@ async function main() {
   console.log(`Created admin user: ${adminUser.email}`)
 
   // Create Test Customer
+  const customerPassword = await bcrypt.hash("Cliente_Cyc_2026!", 10)
   const customerUser = await prisma.user.create({
     data: {
-      email: "juan@email.com",
-      password: "$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu9lK", // password: admin123
-      name: "Juan Perez",
-      phone: "+51 987 654 321",
+      email: "cliente@ejemplo.cl",
+      password: customerPassword,
+      name: "Cliente de Prueba",
+      phone: "+56 9 1234 5678",
       role: "CUSTOMER",
       status: "ACTIVE",
     },
@@ -182,12 +189,12 @@ async function main() {
   await prisma.address.create({
     data: {
       label: "Casa",
-      name: "Juan Perez",
-      phone: "+51 987 654 321",
-      address: "Av. Javier Prado 1234",
-      city: "Lima",
-      state: "Lima",
-      zipCode: "15036",
+      name: "Cliente de Prueba",
+      phone: "+56 9 1234 5678",
+      address: "Av. Providencia 1234",
+      city: "Santiago",
+      state: "Región Metropolitana",
+      zipCode: "7500000",
       isDefault: true,
       userId: customerUser.id,
     },

@@ -8,12 +8,15 @@ interface OrderSummaryProps {
   items: CartItem[]
 }
 
+const FREE_SHIPPING_THRESHOLD = 50000
+const STANDARD_SHIPPING_COST = 3990
+
 export function OrderSummary({ items }: OrderSummaryProps) {
   const subtotal = items.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
     0
   )
-  const shipping = subtotal >= 200 ? 0 : 15
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_COST
   const total = subtotal + shipping
 
   return (
@@ -56,11 +59,11 @@ export function OrderSummary({ items }: OrderSummaryProps) {
           <span>$ {subtotal.toLocaleString('es-CL')}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">IGV (18%)</span>
+          <span className="text-muted-foreground">IVA (19%)</span>
           <span>Incluido</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Envio</span>
+          <span className="text-muted-foreground">Envío</span>
           <span>{shipping === 0 ? "Gratis" : `$ ${shipping.toLocaleString('es-CL')}`}</span>
         </div>
       </div>

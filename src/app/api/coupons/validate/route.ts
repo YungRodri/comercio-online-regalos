@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/api-auth"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 /**
  * POST /api/coupons/validate
@@ -8,8 +9,29 @@ import { requireAuth } from "@/lib/api-auth"
  * Returns the discount amount or an error.
  */
 export async function POST(request: NextRequest) {
-  const { error } = await requireAuth()
+  const { session, error } = await requireAuth()
   if (error) return error
+
+  // Rate limit: max 15 coupon validation attempts per 5 minutes per user
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+
+  const rl = checkRateLimit(`coupon_validate:${session!.user.id}:${ip}`, {
+    limit: 15,
+    windowSec: 300,
+  })
+
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Demasiados intentos de validación de cupones. Por favor, espera unos minutos." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfter) },
+      }
+    )
+  }
 
   try {
     const body = await request.json()

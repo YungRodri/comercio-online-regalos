@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
 
       // Parse items from metadata
       const itemsData = session.metadata?.items
-      const items = itemsData ? JSON.parse(itemsData) : []
+      const items: Array<{ id: string; qty: number; customImage?: string | null }> =
+        itemsData ? JSON.parse(itemsData) : []
 
       try {
         // Find user by ID
@@ -68,27 +69,33 @@ export async function POST(request: NextRequest) {
         const address = await prisma.address.create({
           data: {
             userId: user.id,
-            label: "Envio",
+            label: "Envío",
             name: session.customer_details?.name || user.name,
             phone: session.customer_details?.phone || "",
-            address: customerAddress?.line1 || "",
-            city: customerAddress?.city || "",
-            state: customerAddress?.state || "",
-            zipCode: customerAddress?.postal_code || "",
+            address: customerAddress?.line1 || "Dirección registrada en pago",
+            city: customerAddress?.city || "Santiago",
+            state: customerAddress?.state || "RM",
+            zipCode: customerAddress?.postal_code || "0000000",
             isDefault: false,
           },
         })
 
         // Get product details for order items
-        const productIds = items.map((i: { id: string }) => i.id)
+        const productIds = items.map((i) => i.id)
         const products = await prisma.product.findMany({
           where: { id: { in: productIds } },
         })
 
-        // Calculate totals
-        const subtotal = (session.amount_subtotal || 0) / 100
-        const shipping = (session.shipping_cost?.amount_total || 0) / 100
-        const total = (session.amount_total || 0) / 100
+        // Calculate totals handling zero-decimal currencies (like CLP) vs standard cent currencies
+        const isZeroDecimal = session.currency?.toLowerCase() === "clp"
+        const divisor = isZeroDecimal ? 1 : 100
+        const subtotal = Math.round((session.amount_subtotal || 0) / divisor)
+        const shipping = Math.round((session.shipping_cost?.amount_total || 0) / divisor)
+        const total = Math.round((session.amount_total || 0) / divisor)
+
+        // Generate human-friendly order number
+        const orderCount = await prisma.order.count()
+        const orderNumber = `BT-${new Date().getFullYear()}-${String(orderCount + 1).padStart(4, "0")}`
 
         // Create order
         const order = await prisma.order.create({
@@ -96,7 +103,7 @@ export async function POST(request: NextRequest) {
             userId: user.id,
             addressId: address.id,
             couponId: couponId || null,
-            orderNumber: `BT-${Date.now()}`,
+            orderNumber,
             status: "PROCESSING",
             subtotal,
             shipping,
@@ -105,14 +112,16 @@ export async function POST(request: NextRequest) {
             paymentMethod: "Stripe",
             stripeSessionId: session.id,
             items: {
-              create: items.map((item: { id: string; qty: number }) => {
+              create: items.map((item) => {
                 const product = products.find((p) => p.id === item.id)
+                const unitPrice = Number(product?.price) || 0
                 return {
                   productId: item.id,
                   name: product?.name || "Producto",
-                  price: product?.price || 0,
+                  price: unitPrice,
                   quantity: item.qty,
-                  total: (Number(product?.price) || 0) * item.qty,
+                  total: unitPrice * item.qty,
+                  customImage: item.customImage || null,
                 }
               }),
             },
@@ -145,7 +154,7 @@ export async function POST(request: NextRequest) {
           customerName: user.name,
           orderNumber: order.orderNumber,
           orderTotal: total,
-          orderItems: items.map((item: { id: string; qty: number }) => {
+          orderItems: items.map((item) => {
             const product = products.find((p) => p.id === item.id)
             return {
               name: product?.name || "Producto",

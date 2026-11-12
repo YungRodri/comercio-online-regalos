@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 type Params = Promise<{ code: string }>
 
@@ -21,9 +22,26 @@ const statusOrder = [
 ]
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Params }
 ) {
+  // Rate limit: max 30 track requests per IP per 5 minutes
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+
+  const rl = checkRateLimit(`track_order:${ip}`, { limit: 30, windowSec: 300 })
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Demasiadas consultas de seguimiento. Por favor, espera unos minutos." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfter) },
+      }
+    )
+  }
+
   try {
     const { code } = await params
 
